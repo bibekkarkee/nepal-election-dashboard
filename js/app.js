@@ -1,4 +1,4 @@
-const mainURL = "/api/proxy"; // Vercel proxy
+const mainURL = "/api/proxy"; 
 let originalData = [];
 
 async function loadData() {
@@ -7,20 +7,22 @@ async function loadData() {
         const data = await res.json();
         originalData = data;
 
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("table").style.display = "table";
+        document.getElementById("loading").style.display="none";
+        document.getElementById("table").style.display="table";
 
         generateFilters(data);
         renderTable(data);
         renderSeatSummary(data);
-        renderCharts(data);
+        renderSeatChart(data);
+        renderVoteShare(data);
+        renderNepalMap(data);
+
     } catch (err) {
         document.getElementById("loading").innerText = "⚠ Error loading data.";
         console.error(err);
     }
 }
 
-// Filters
 function generateFilters(data){
     populateSelect("provinceFilter",[...new Set(data.map(d=>d.Province))]);
     populateSelect("districtFilter",[...new Set(data.map(d=>d.District))]);
@@ -30,15 +32,9 @@ function generateFilters(data){
 function populateSelect(id, values){
     const select = document.getElementById(id);
     select.innerHTML = `<option value="">All</option>`;
-    values.forEach(v=>{
-        if(!v) return;
-        const opt = document.createElement("option");
-        opt.value=v; opt.textContent=v;
-        select.appendChild(opt);
-    });
+    values.forEach(v=>{ if(!v) return; let opt=document.createElement("option"); opt.value=v; opt.textContent=v; select.appendChild(opt); });
 }
 
-// Table
 function renderTable(data){
     const headerRow = document.getElementById("tableHeader");
     const body = document.getElementById("tableBody");
@@ -46,73 +42,66 @@ function renderTable(data){
 
     if(data.length===0) return;
     const headers = Object.keys(data[0]);
-    headers.forEach(h=>{ const th=document.createElement("th"); th.textContent=h; headerRow.appendChild(th); });
+    headers.forEach(h=>{ let th=document.createElement("th"); th.textContent=h; headerRow.appendChild(th); });
 
     data.forEach(row=>{
-        const tr=document.createElement("tr");
+        let tr=document.createElement("tr");
         if(row.Position==="1") tr.classList.add("winner");
-        headers.forEach(h=>{
-            const td=document.createElement("td"); td.textContent=row[h]; tr.appendChild(td);
-        });
+        headers.forEach(h=>{ let td=document.createElement("td"); td.textContent=row[h]; tr.appendChild(td); });
         body.appendChild(tr);
     });
 }
 
-// Seat Summary
 function renderSeatSummary(data){
     const container = document.getElementById("seatSummary");
     container.innerHTML = "";
-    const summary = data.reduce((acc,row)=>{
-        if(!row.Party) return acc;
-        acc[row.Party] = (acc[row.Party]||0)+1;
-        return acc;
-    },{});
+    const partyColors = {"NC":"#2563eb","CPN-UML":"#ef4444","CPN-MC":"#10b981","RPP":"#f59e0b","Others":"#6b7280"};
+    const summary = data.reduce((acc,row)=>{ if(!row.Party) return acc; acc[row.Party]=(acc[row.Party]||0)+1; return acc; },{});
 
-    for(const [party,seats] of Object.entries(summary)){
-        const div = document.createElement("div");
-        div.style.cssText = "display:inline-block;background:#111827;color:white;padding:15px;border-radius:12px;margin:5px;min-width:120px;text-align:center;";
+    Object.entries(summary).forEach(([party,seats])=>{
+        const div=document.createElement("div");
+        div.style.cssText=`display:inline-block;padding:15px;border-radius:12px;margin:5px;min-width:120px;text-align:center;background:${partyColors[party]||"#111827"};`;
         div.innerHTML = `<div style="font-size:20px;font-weight:bold">${seats}</div><div>${party}</div>`;
         container.appendChild(div);
-    }
-}
-
-// Charts
-function renderCharts(data){
-    const ctx = document.getElementById("seatChart").getContext('2d');
-    const summary = data.reduce((acc,row)=>{
-        if(!row.Party) return acc;
-        acc[row.Party] = (acc[row.Party]||0)+1;
-        return acc;
-    },{});
-
-    new Chart(ctx,{
-        type:'bar',
-        data:{
-            labels:Object.keys(summary),
-            datasets:[{label:'Seats',data:Object.values(summary),backgroundColor:['#2563eb','#ef4444','#10b981','#f59e0b','#ec4899','#8b5cf6']}]
-        },
-        options:{responsive:true, plugins:{legend:{display:false}}}
     });
 }
 
-// Filters function
+function renderSeatChart(data){
+    const ctx=document.getElementById("seatChart").getContext('2d');
+    const summary=data.reduce((acc,row)=>{ if(!row.Party) return acc; acc[row.Party]=(acc[row.Party]||0)+1; return acc; },{});
+    new Chart(ctx,{type:'bar',data:{labels:Object.keys(summary),datasets:[{label:'Seats',data:Object.values(summary),backgroundColor:['#2563eb','#ef4444','#10b981','#f59e0b','#ec4899','#8b5cf6']}]},options:{responsive:true}});
+}
+
+function renderVoteShare(data){
+    const ctx=document.getElementById("voteChart").getContext('2d');
+    const summary=data.reduce((acc,row)=>{ if(!row.Party) return acc; acc[row.Party]=(acc[row.Party]||0)+parseInt(row.Votes||0); return acc; },{});
+    new Chart(ctx,{type:'pie',data:{labels:Object.keys(summary),datasets:[{data:Object.values(summary),backgroundColor:['#2563eb','#ef4444','#10b981','#f59e0b','#ec4899','#8b5cf6']}]},options:{responsive:true}});
+}
+
+function renderNepalMap(data){
+    const mapContainer=document.getElementById("mapContainer");
+    mapContainer.innerHTML=""; 
+    const provinceWinner=data.reduce((acc,row)=>{ if(row.Position==='1') acc[row.Province]=row.Party; return acc; },{});
+    const partyColors={"NC":"#2563eb","CPN-UML":"#ef4444","CPN-MC":"#10b981","RPP":"#f59e0b","Others":"#6b7280"};
+    fetch("nepal-provinces.svg").then(r=>r.text()).then(svg=>{
+        mapContainer.innerHTML=svg;
+        Object.keys(provinceWinner).forEach(p=>{
+            const party=provinceWinner[p]||"Others";
+            const color=partyColors[party]||"#6b7280";
+            const el=mapContainer.querySelector(`#province-${p}`);
+            if(el) el.style.fill=color;
+        });
+    });
+}
+
 function filterData(){
-    const search=document.getElementById("search").value.toLowerCase();
-    const province=document.getElementById("provinceFilter").value;
-    const district=document.getElementById("districtFilter").value;
+    const s=document.getElementById("search").value.toLowerCase();
+    const prov=document.getElementById("provinceFilter").value;
+    const dist=document.getElementById("districtFilter").value;
     const party=document.getElementById("partyFilter").value;
-
-    const filtered = originalData.filter(d=>{
-        return (!province||d.Province===province) &&
-               (!district||d.District===district) &&
-               (!party||d.Party===party) &&
-               JSON.stringify(d).toLowerCase().includes(search);
-    });
-    renderTable(filtered);
-    renderSeatSummary(filtered);
-    renderCharts(filtered);
+    const filtered=originalData.filter(d=>(!prov||d.Province===prov)&&(!dist||d.District===dist)&&(!party||d.Party===party)&&JSON.stringify(d).toLowerCase().includes(s));
+    renderTable(filtered); renderSeatSummary(filtered); renderSeatChart(filtered); renderVoteShare(filtered); renderNepalMap(filtered);
 }
 
-// Auto-refresh every 30 seconds
 loadData();
 setInterval(loadData,30000);
