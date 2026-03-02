@@ -1,55 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ne">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nepal Election Dashboard</title>
+<title>Nepal Election Candidates</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
 <header>
-  <div class="navbar">
-    <h1>🇳🇵 Nepal Election 2082</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">Parties</a>
-      <a href="#">Candidates</a>
-      <a href="#">Hot Seats</a>
-    </nav>
-    <div class="countdown">
-      Next Refresh: <span id="countdownTimer">30</span>s
-    </div>
-  </div>
+  <h1>नेपाल निर्वाचन उम्मेदवारहरु 2082</h1>
 </header>
 
 <div class="container">
-
-  <!-- Filters -->
-  <div class="filters">
-    <input type="text" id="search" placeholder="Search candidate/party..." onkeyup="filterData()">
-    <select id="provinceFilter" onchange="filterData()"><option value="">All Provinces</option></select>
-    <select id="districtFilter" onchange="filterData()"><option value="">All Districts</option></select>
-    <select id="partyFilter" onchange="filterData()"><option value="">All Parties</option></select>
-  </div>
-
-
-  <!-- Candidate Table + Detail Panel -->
-  <div class="dashboard">
-    <div class="table-card">
-      <table id="table">
-        <thead><tr id="tableHeader"></tr></thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-    <div id="candidateDetail" class="detail-panel">
-      <p>Click on a candidate to see details</p>
-    </div>
-  </div>
-
+  <div id="candidateList" class="candidate-list"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
