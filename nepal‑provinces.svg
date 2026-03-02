@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 800 700" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified map with 7 provinces -->
+  <style>
+    .province { stroke:#fff; stroke-width:2; cursor:pointer; }
+  </style>
+
+  <!-- Province 1 -->
+  <path id="province-1" class="province" d="M100,50 L300,50 L300,200 L100,200 Z" fill="#6b7280"/>
+  <!-- Province 2 -->
+  <path id="province-2" class="province" d="M300,50 L500,50 L500,200 L300,200 Z" fill="#6b7280"/>
+  <!-- Bagmati -->
+  <path id="province-3" class="province" d="M200,200 L400,200 L400,350 L200,350 Z" fill="#6b7280"/>
+  <!-- Gandaki -->
+  <path id="province-4" class="province" d="M0,200 L200,200 L200,350 L0,350 Z" fill="#6b7280"/>
+  <!-- Lumbini -->
+  <path id="province-5" class="province" d="M0,350 L200,350 L200,500 L0,500 Z" fill="#6b7280"/>
+  <!-- Karnali -->
+  <path id="province-6" class="province" d="M200,350 L400,350 L400,500 L200,500 Z" fill="#6b7280"/>
+  <!-- Sudurpashchim -->
+  <path id="province-7" class="province" d="M400,350 L600,350 L600,500 L400,500 Z" fill="#6b7280"/>
+</svg>
