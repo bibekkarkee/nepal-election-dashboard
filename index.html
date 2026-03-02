@@ -3,41 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nepal Election 2082 Live Dashboard</title>
+<title>Nepal Election 2082 | Live Dashboard</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<header>🇳🇵 Nepal Election 2082- Live Dashboard</header>
+<header class="hero">
+  <div class="hero-content">
+    <h1>🇳🇵 Nepal Election 2082</h1>
+    <p class="subtitle">Live Results Dashboard</p>
+  </div>
+</header>
 
 <div class="container">
 
-  <div class="controls">
+  <!-- Summary Cards -->
+  <div id="summaryCards" class="summary-cards"></div>
+
+  <!-- Filters -->
+  <div class="filters">
     <input type="text" id="search" placeholder="Search candidate/party..." onkeyup="filterData()">
     <select id="provinceFilter" onchange="filterData()"><option value="">All Provinces</option></select>
     <select id="districtFilter" onchange="filterData()"><option value="">All Districts</option></select>
     <select id="partyFilter" onchange="filterData()"><option value="">All Parties</option></select>
   </div>
 
-  <div id="seatSummary" class="card"></div>
-
-  <div class="card">
+  <!-- Main Dashboard -->
+  <div class="dashboard">
+    <!-- Candidate Table -->
+    <div class="card table-card">
       <div id="loading">Loading live results...</div>
       <table id="table" style="display:none">
         <thead><tr id="tableHeader"></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
+    </div>
+
+    <!-- Charts + Map -->
+    <div class="charts-map">
+      <canvas id="seatChart"></canvas>
+      <canvas id="voteChart"></canvas>
+      <div id="mapContainer" class="card map-card"></div>
+    </div>
   </div>
-
-  <canvas id="seatChart" style="max-width:800px;margin:20px auto;"></canvas>
-  <canvas id="voteChart" style="max-width:800px;margin:20px auto;"></canvas>
-
-  <div id="mapContainer" class="card"></div>
 
 </div>
 
-<footer>Auto-refresh every 30 seconds | Live Data: election.gov.np</footer>
+<footer>
+  Auto-refresh every 30 seconds | Source: <a href="https://result.election.gov.np/" target="_blank">Election Commission</a>
+</footer>
 
 <script src="js/app.js"></script>
 </body>
