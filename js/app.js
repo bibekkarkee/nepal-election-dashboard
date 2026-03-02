@@ -18,17 +18,14 @@ async function loadCandidates() {
 function populateProvinceFilter(data) {
     const provinceSelect = document.getElementById("provinceFilter");
     const districtSelect = document.getElementById("districtFilter");
-    const partySelect = document.getElementById("partyFilter");
 
     const provinces = [...new Set(data.map(d=>d.StateName))].sort();
-    const parties = [...new Set(data.map(d=>d.PoliticalPartyName))].sort();
 
     provinces.forEach(p => provinceSelect.appendChild(new Option(p,p)));
-    parties.forEach(p => partySelect.appendChild(new Option(p,p)));
 
     // When province changes, update districts
     provinceSelect.addEventListener("change", updateDistricts);
-    ["search","provinceFilter","districtFilter","partyFilter"].forEach(id=>{
+    ["search","provinceFilter","districtFilter"].forEach(id=>{
         document.getElementById(id).addEventListener("input", filterCandidates);
         document.getElementById(id).addEventListener("change", filterCandidates);
     });
@@ -55,13 +52,11 @@ function filterCandidates() {
     const s = (document.getElementById("search").value || "").toLowerCase();
     const p = document.getElementById("provinceFilter").value;
     const d = document.getElementById("districtFilter").value;
-    const pa = document.getElementById("partyFilter").value;
 
     filteredData = originalData.filter(c => 
         (!s || c.CandidateName.toLowerCase().includes(s)) &&
         (!p || c.StateName === p) &&
-        (!d || c.DistrictName === d) &&
-        (!pa || c.PoliticalPartyName === pa)
+        (!d || c.DistrictName === d)
     );
 
     renderCandidateList(filteredData);
@@ -78,7 +73,6 @@ function renderCandidateList(data) {
         div.innerHTML = `
             <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
             <h3>${c.CandidateName}</h3>
-            <p>${c.PoliticalPartyName}</p>
             <p>${c.StateName} - ${c.DistrictName}</p>
         `;
         div.addEventListener("click", ()=>window.location.href=`candidate.html?id=${c.CandidateID}`);
