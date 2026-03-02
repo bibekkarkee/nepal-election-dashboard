@@ -1,0 +1,14 @@
+body { font-family: Arial, sans-serif; background:#0f172a; color:#fff; margin:0; padding:0; }
+header { padding:20px; text-align:center; font-size:24px; background:#111827; }
+.container { padding:20px; max-width:1400px; margin:auto; }
+.controls { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+input, select { padding:10px; border-radius:6px; border:none; font-size:14px; }
+select { background:#1f2937; color:white; }
+.card { background:#1f2937; padding:15px; border-radius:12px; overflow:auto; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:12px; border-bottom:1px solid #374151; text-align:left; }
+th { background:#2563eb; position:sticky; top:0; }
+tr:nth-child(even) { background:#111827; }
+tr:hover { background:#374151; }
+tr.winner { background:#065f46; font-weight:600; }
+footer { text-align:center; padding:15px; font-size:14px; color:#9ca3af; margin-top:20px; }
