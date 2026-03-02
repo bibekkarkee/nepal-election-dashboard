@@ -2,7 +2,12 @@ const mainURL = "/api/proxy";
 let originalData = [];
 let refreshTime = 30;
 
-// Countdown Timer
+// Provinces list
+const provinces = [
+  "Province 1","Province 2","Bagmati","Gandaki","Lumbini","Karnali","Sudurpashchim"
+];
+
+// Countdown
 function startCountdown() {
     const timer = document.getElementById("countdownTimer");
     setInterval(() => {
@@ -20,17 +25,16 @@ async function loadData(){
         const data = await res.json();
         originalData = data;
         generateFilters(data);
+        renderProvinces();
         filterData();
-    }catch(err){
-        console.error(err);
-    }
+    }catch(err){ console.error(err); }
 }
 loadData();
-setInterval(loadData, 30000);
+setInterval(loadData,30000);
 
 // Filters
 function generateFilters(data){
-    populateSelect("provinceFilter",[...new Set(data.map(d=>d.Province).filter(Boolean))].sort());
+    populateSelect("provinceFilter",provinces);
     populateSelect("districtFilter",[...new Set(data.map(d=>d.District).filter(Boolean))].sort());
     populateSelect("partyFilter",[...new Set(data.map(d=>d.Party).filter(Boolean))].sort());
 }
@@ -55,6 +59,7 @@ function filterData(){
     renderTable(filtered);
     renderSeatSummary(filtered);
     renderHotSeats(filtered);
+    highlightProvinceMap(filtered);
 }
 
 // Render table
@@ -63,7 +68,6 @@ function renderTable(data){
     const body=document.getElementById("tableBody");
     header.innerHTML=""; body.innerHTML="";
     if(!data.length) return;
-
     const headers=["CandidatePhoto","Name","Party","Votes","Position","Province","District"];
     headers.forEach(h=>{ const th=document.createElement("th"); th.textContent = h==="CandidatePhoto"?"":h; header.appendChild(th); });
 
@@ -71,35 +75,21 @@ function renderTable(data){
         const tr=document.createElement("tr"); if(row.Position==="1") tr.classList.add("winner");
         tr.addEventListener("click",()=>showCandidateDetail(row));
 
-        // Candidate Photo
-        const tdPhoto = document.createElement("td");
-        const imgC = document.createElement("img");
-        imgC.src = row.CandidateID?`https://result.election.gov.np/Images/Candidate/${row.CandidateID}.jpg`:"assets/candidate-placeholder.png";
+        const tdPhoto=document.createElement("td");
+        const imgC=document.createElement("img");
+        imgC.src=row.CandidateID?`https://result.election.gov.np/Images/Candidate/${row.CandidateID}.jpg`:"assets/candidate-placeholder.png";
         tdPhoto.appendChild(imgC); tr.appendChild(tdPhoto);
 
-        // Name
-        const tdName = document.createElement("td"); tdName.textContent=row.Name; tr.appendChild(tdName);
-
-        // Party
-        const tdParty=document.createElement("td"); tdParty.textContent=row.Party; tr.appendChild(tdParty);
-
-        // Votes
-        const tdVotes=document.createElement("td"); tdVotes.textContent=row.Votes; tr.appendChild(tdVotes);
-
-        // Position
-        const tdPos=document.createElement("td"); tdPos.textContent=row.Position; tr.appendChild(tdPos);
-
-        // Province
-        const tdProv=document.createElement("td"); tdProv.textContent=row.Province; tr.appendChild(tdProv);
-
-        // District
-        const tdDist=document.createElement("td"); tdDist.textContent=row.District; tr.appendChild(tdDist);
+        ["Name","Party","Votes","Position","Province","District"].forEach(k=>{
+            const td=document.createElement("td");
+            td.textContent=row[k]; tr.appendChild(td);
+        });
 
         body.appendChild(tr);
     });
 }
 
-// Candidate detail panel
+// Candidate details
 function showCandidateDetail(candidate){
     const panel=document.getElementById("candidateDetail");
     panel.innerHTML=`
@@ -117,27 +107,47 @@ function showCandidateDetail(candidate){
 // Summary cards
 function renderSeatSummary(data){
     const container=document.getElementById("summaryCards"); container.innerHTML="";
-    const summary = data.reduce((acc,row)=>{
-        if(!row.Party) return acc;
-        if(!acc[row.Party]) acc[row.Party]={seats:0};
-        acc[row.Party].seats+=1; return acc;
-    },{});
+    const summary=data.reduce((acc,row)=>{ if(!row.Party) return acc; if(!acc[row.Party]) acc[row.Party]={seats:0}; acc[row.Party].seats+=1; return acc; },{});
     Object.entries(summary).forEach(([party,info])=>{
         const div=document.createElement("div"); div.className="card";
         div.innerHTML=`<h2>${info.seats}</h2><p>${party}</p>`; container.appendChild(div);
     });
 }
 
-// Hot seats (Position 1)
+// Hot Seats
 function renderHotSeats(data){
     const container=document.getElementById("hotSeatsContainer"); container.innerHTML="";
-    const hot = data.filter(c=>c.Position==="1").slice(0,10); // top 10 hot seats
+    const hot=data.filter(c=>c.Position==="1").slice(0,10);
     hot.forEach(c=>{
         const div=document.createElement("div"); div.className="card";
-        div.innerHTML=`
-            <strong>${c.District}</strong> - ${c.Name} (${c.Party})<br>
-            Votes: ${c.Votes}
-        `;
+        div.innerHTML=`<strong>${c.District}</strong> - ${c.Name} (${c.Party})<br>Votes: ${c.Votes}`;
         container.appendChild(div);
+    });
+}
+
+// Render provinces
+function renderProvinces(){
+    const container=document.getElementById("mapContainer"); container.innerHTML="";
+    provinces.forEach(p=>{
+        const div=document.createElement("div");
+        div.className="province-card"; div.textContent=p;
+        div.style.padding="10px"; div.style.border="1px solid #374151"; div.style.borderRadius="8px"; div.style.cursor="pointer"; div.style.flex="1 1 120px"; div.style.textAlign="center";
+        div.addEventListener("click",()=>{ document.getElementById("provinceFilter").value=p; filterData(); });
+        container.appendChild(div);
+    });
+}
+
+// Highlight provinces with winners
+function highlightProvinceMap(data){
+    // For demo, just change background color of province cards based on party of top candidate
+    const provinceCards = document.querySelectorAll("#mapContainer .province-card");
+    provinceCards.forEach(card=>{
+        const prov = card.textContent;
+        const topCandidate = data.filter(d=>d.Province===prov && d.Position==="1")[0];
+        if(topCandidate){
+            card.style.background="#065f46"; // winner green
+        }else{
+            card.style.background="#1f2937";
+        }
     });
 }
