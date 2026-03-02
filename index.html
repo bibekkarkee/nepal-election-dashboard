@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nepal Election 2082 Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+🇳🇵 Nepal Election 2082 Live Dashboard
+</header>
+
+<div class="container">
+
+<div class="controls">
+    <input type="text" id="search" placeholder="Search candidate/party..." onkeyup="filterData()">
+    <select id="provinceFilter" onchange="filterData()">
+        <option value="">All Provinces</option>
+    </select>
+    <select id="districtFilter" onchange="filterData()">
+        <option value="">All Districts</option>
+    </select>
+    <select id="partyFilter" onchange="filterData()">
+        <option value="">All Parties</option>
+    </select>
+</div>
+
+<div class="card">
+    <div id="loading">Loading live results...</div>
+    <table id="table" style="display:none">
+        <thead>
+            <tr id="tableHeader"></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+</div>
+
+<footer>
+Auto-refresh every 30 seconds | Live Data: election.gov.np
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
