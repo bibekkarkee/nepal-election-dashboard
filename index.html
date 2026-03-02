@@ -14,6 +14,9 @@
     <h1>🇳🇵 Nepal Election 2082</h1>
     <p class="subtitle">Live Results Dashboard</p>
   </div>
+  <div class="countdown">
+    Next Refresh In: <span id="countdownTimer">30</span>s
+  </div>
 </header>
 
 <div class="container">
@@ -29,8 +32,9 @@
     <select id="partyFilter" onchange="filterData()"><option value="">All Parties</option></select>
   </div>
 
-  <!-- Main Dashboard -->
+  <!-- Dashboard -->
   <div class="dashboard">
+
     <!-- Candidate Table -->
     <div class="card table-card">
       <div id="loading">Loading live results...</div>
@@ -40,12 +44,18 @@
       </table>
     </div>
 
+    <!-- Detail Panel -->
+    <div id="candidateDetail" class="card detail-panel">
+      <p>Select a candidate to see details</p>
+    </div>
+
     <!-- Charts + Map -->
     <div class="charts-map">
       <canvas id="seatChart"></canvas>
       <canvas id="voteChart"></canvas>
       <div id="mapContainer" class="card map-card"></div>
     </div>
+
   </div>
 
 </div>
