@@ -1,15 +1,13 @@
-const mainURL = "https://api.allorigins.win/raw?url=https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
+const mainURL = "/api/proxy"; // Use the Vercel proxy
 
-let originalData = [];
-
-async function loadData(){
+async function loadData() {
     try {
         const res = await fetch(mainURL);
-        const data = await res.json();
+        const data = await res.json(); // Now this will succeed
         originalData = data;
 
-        document.getElementById("loading").style.display="none";
-        document.getElementById("table").style.display="table";
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("table").style.display = "table";
 
         generateFilters(data);
         renderTable(data);
@@ -19,66 +17,3 @@ async function loadData(){
         console.error(err);
     }
 }
-
-function generateFilters(data){
-    const provinces = [...new Set(data.map(d=>d.Province))];
-    const districts = [...new Set(data.map(d=>d.District))];
-    const parties = [...new Set(data.map(d=>d.Party))];
-
-    populateSelect("provinceFilter", provinces);
-    populateSelect("districtFilter", districts);
-    populateSelect("partyFilter", parties);
-}
-
-function populateSelect(id, values){
-    const select = document.getElementById(id);
-    select.innerHTML = `<option value="">All</option>`;
-    values.forEach(v=>{
-        if(!v) return;
-        const opt = document.createElement("option");
-        opt.value = v; opt.textContent = v;
-        select.appendChild(opt);
-    });
-}
-
-function renderTable(data){
-    const headerRow = document.getElementById("tableHeader");
-    const body = document.getElementById("tableBody");
-    headerRow.innerHTML=""; body.innerHTML="";
-
-    if(data.length===0) return;
-    const headers = Object.keys(data[0]);
-
-    headers.forEach(h=>{
-        const th=document.createElement("th"); th.textContent=h;
-        headerRow.appendChild(th);
-    });
-
-    data.forEach(row=>{
-        const tr=document.createElement("tr");
-        if(row.Position==="1") tr.classList.add("winner");
-        headers.forEach(h=>{
-            const td=document.createElement("td"); td.textContent=row[h];
-            tr.appendChild(td);
-        });
-        body.appendChild(tr);
-    });
-}
-
-function filterData(){
-    const search = document.getElementById("search").value.toLowerCase();
-    const province = document.getElementById("provinceFilter").value;
-    const district = document.getElementById("districtFilter").value;
-    const party = document.getElementById("partyFilter").value;
-
-    const filtered = originalData.filter(d=>{
-        return (!province||d.Province===province) &&
-               (!district||d.District===district) &&
-               (!party||d.Party===party) &&
-               JSON.stringify(d).toLowerCase().includes(search);
-    });
-    renderTable(filtered);
-}
-
-loadData();
-setInterval(loadData, 30000);
