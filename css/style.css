@@ -1,39 +1,27 @@
-/* Body and fonts */
 body { font-family: 'Segoe UI', Arial, sans-serif; margin:0; padding:0; background:#0f172a; color:#fff; }
 a { color:#2563eb; text-decoration:none; }
 a:hover { text-decoration:underline; }
 
-/* Hero Section */
-header.hero {
-  background: linear-gradient(135deg, #2563eb, #10b981);
-  padding:40px 20px; text-align:center; color:white;
-}
+header.hero { background: linear-gradient(135deg,#2563eb,#10b981); padding:40px 20px; text-align:center; color:white; }
 .hero h1 { font-size:3rem; margin:0; }
 .hero .subtitle { font-size:1.2rem; opacity:0.8; }
 
-/* Container */
 .container { max-width:1400px; margin:auto; padding:20px; }
 
-/* Summary Cards */
 .summary-cards { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:20px; }
-.summary-cards .card {
-  flex:1 1 180px; background:#1f2937; padding:20px; border-radius:12px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3);
-}
+.summary-cards .card { flex:1 1 180px; background:#1f2937; padding:20px; border-radius:12px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
 .summary-cards .card h2 { font-size:2rem; margin:0; }
 .summary-cards .card p { margin:5px 0 0 0; font-size:0.9rem; opacity:0.8; }
 
-/* Filters */
 .filters { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
 input, select { padding:10px; border-radius:6px; border:none; font-size:14px; }
 select { background:#1f2937; color:white; }
 
-/* Dashboard layout */
 .dashboard { display:flex; flex-wrap:wrap; gap:20px; }
 .table-card { flex:2 1 600px; overflow:auto; }
 .charts-map { flex:1 1 400px; display:flex; flex-direction:column; gap:20px; }
 .map-card { height:400px; }
 
-/* Table */
 table { width:100%; border-collapse:collapse; }
 th, td { padding:12px; border-bottom:1px solid #374151; text-align:left; }
 th { background:#2563eb; position:sticky; top:0; }
@@ -41,14 +29,8 @@ tr:nth-child(even) { background:#111827; }
 tr:hover { background:#374151; }
 tr.winner { background:#065f46; font-weight:600; }
 
-/* Charts */
 canvas { background:#1f2937; padding:10px; border-radius:12px; }
 
-/* Footer */
 footer { text-align:center; padding:15px; font-size:14px; color:#9ca3af; margin-top:20px; }
 
-/* Responsive */
-@media(max-width:1000px){
-  .dashboard { flex-direction:column; }
-  .charts-map { flex-direction:column; }
-}
+@media(max-width:1000px){ .dashboard { flex-direction:column; } .charts-map { flex-direction:column; } }
