@@ -1,5 +1,6 @@
 const mainURL = "/api/proxy"; 
 let originalData = [];
+let filteredData = [];
 
 // Load data
 async function loadCandidates() {
@@ -8,30 +9,45 @@ async function loadCandidates() {
         const data = await res.json();
         originalData = data;
 
-        populateFilters(data);
+        populateProvinceFilter(data);
         renderCandidateList(data);
     } catch(err) { console.error(err); }
 }
 
-// Populate filter dropdowns
-function populateFilters(data) {
-    const provinces = [...new Set(data.map(d=>d.StateName))].sort();
-    const districts = [...new Set(data.map(d=>d.DistrictName))].sort();
-    const parties = [...new Set(data.map(d=>d.PoliticalPartyName))].sort();
-
+// Populate province filter
+function populateProvinceFilter(data) {
     const provinceSelect = document.getElementById("provinceFilter");
     const districtSelect = document.getElementById("districtFilter");
     const partySelect = document.getElementById("partyFilter");
 
-    provinces.forEach(p=>provinceSelect.appendChild(new Option(p,p)));
-    districts.forEach(d=>districtSelect.appendChild(new Option(d,d)));
-    parties.forEach(p=>partySelect.appendChild(new Option(p,p)));
+    const provinces = [...new Set(data.map(d=>d.StateName))].sort();
+    const parties = [...new Set(data.map(d=>d.PoliticalPartyName))].sort();
 
-    // Add event listeners
+    provinces.forEach(p => provinceSelect.appendChild(new Option(p,p)));
+    parties.forEach(p => partySelect.appendChild(new Option(p,p)));
+
+    // When province changes, update districts
+    provinceSelect.addEventListener("change", updateDistricts);
     ["search","provinceFilter","districtFilter","partyFilter"].forEach(id=>{
         document.getElementById(id).addEventListener("input", filterCandidates);
         document.getElementById(id).addEventListener("change", filterCandidates);
     });
+
+    updateDistricts(); // initialize districts
+}
+
+// Update districts based on selected province
+function updateDistricts() {
+    const provinceSelect = document.getElementById("provinceFilter");
+    const districtSelect = document.getElementById("districtFilter");
+
+    const selectedProvince = provinceSelect.value;
+    let districts = [...new Set(originalData
+        .filter(d => !selectedProvince || d.StateName === selectedProvince)
+        .map(d => d.DistrictName))].sort();
+
+    districtSelect.innerHTML = '<option value="">सबै जिल्ला</option>';
+    districts.forEach(d => districtSelect.appendChild(new Option(d,d)));
 }
 
 // Filter candidates
@@ -41,17 +57,17 @@ function filterCandidates() {
     const d = document.getElementById("districtFilter").value;
     const pa = document.getElementById("partyFilter").value;
 
-    const filtered = originalData.filter(c => 
+    filteredData = originalData.filter(c => 
         (!s || c.CandidateName.toLowerCase().includes(s)) &&
         (!p || c.StateName === p) &&
         (!d || c.DistrictName === d) &&
         (!pa || c.PoliticalPartyName === pa)
     );
 
-    renderCandidateList(filtered);
+    renderCandidateList(filteredData);
 }
 
-// Render Candidate Cards
+// Render candidate cards
 function renderCandidateList(data) {
     const container = document.getElementById("candidateList");
     container.innerHTML = "";
