@@ -1,4 +1,4 @@
-const mainURL = "/api/proxy"; // Vercel proxy
+const mainURL = "https://nepal-election-dashboard.vercel.app/api/proxy"; // Vercel proxy
 let originalData = [];
 
 async function loadData() {
