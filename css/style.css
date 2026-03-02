@@ -17,6 +17,9 @@ header { background:linear-gradient(135deg,#2563eb,#10b981); padding:15px; displ
 .summary-cards { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:20px; }
 .summary-cards .card { flex:1 1 150px; background:#1f2937; padding:15px; border-radius:12px; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.3); }
 
+.province-map { margin-bottom:20px; }
+#mapContainer { display:flex; flex-wrap:wrap; gap:5px; }
+
 .dashboard { display:flex; flex-wrap:wrap; gap:20px; }
 .table-card { flex:2 1 700px; overflow:auto; }
 .detail-panel { flex:1 1 300px; background:#1f2937; padding:15px; border-radius:12px; min-height:300px; }
