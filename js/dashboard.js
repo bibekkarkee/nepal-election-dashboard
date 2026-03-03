@@ -99,7 +99,7 @@ function renderTopParties(candidates) {
   });
 }
 
-// ===== TOP CANDIDATES PER CONSTITUENCY (WITH VOTE % AND RANK) =====
+// ===== TOP CANDIDATES PER CONSTITUENCY (WITH VOTE % AND RANK, 8 RANDOM BOXES) =====
 function renderTopCandidatesByConstituency(candidates) {
   const container = document.getElementById("topCandidatesContainer");
   container.innerHTML = "";
@@ -112,7 +112,13 @@ function renderTopCandidatesByConstituency(candidates) {
     constituencyMap[key].push(c);
   });
 
-  Object.entries(constituencyMap).forEach(([constituency, cands]) => {
+  // Get all constituency keys
+  const allKeys = Object.keys(constituencyMap);
+  // Shuffle and take 8 random
+  const randomKeys = allKeys.sort(() => 0.5 - Math.random()).slice(0, 8);
+
+  randomKeys.forEach(key => {
+    const cands = constituencyMap[key];
     const totalVotes = cands.reduce((sum, c) => sum + (c.TotalVoteReceived || 0), 0);
     const sorted = cands.sort((a,b) => (b.TotalVoteReceived || 0) - (a.TotalVoteReceived || 0));
     const top5 = sorted.slice(0,5);
@@ -121,7 +127,7 @@ function renderTopCandidatesByConstituency(candidates) {
     box.className = "constituency-box";
 
     // Title with "View All" link
-    box.innerHTML = `<h3>${constituency} <a href="constituency.html?const=${encodeURIComponent(constituency)}" style="float:right; font-size:14px; text-decoration:underline;">View All</a></h3>`;
+    box.innerHTML = `<h3>${key} <a href="constituency.html?const=${encodeURIComponent(key)}" style="float:right; font-size:14px; text-decoration:underline;">View All</a></h3>`;
 
     top5.forEach((c, index) => {
       const percent = totalVotes ? ((c.TotalVoteReceived || 0) / totalVotes * 100).toFixed(1) : 0;
