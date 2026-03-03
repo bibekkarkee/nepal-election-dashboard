@@ -264,3 +264,55 @@ document.getElementById("darkToggle").addEventListener("click", () => {
 });
 
 loadDashboard();
+
+// ===== Random 5 Electoral Constituencies Candidates =====
+async function loadRandomCandidates() {
+    try {
+        const res = await fetch("/api/proxy"); // your data API
+        const data = await res.json();
+
+        // Get unique constituency IDs
+        const uniqueConstituencies = [...new Set(data.map(d => d.SCConstID))].filter(Boolean);
+
+        // Shuffle and pick 5 random constituencies
+        const shuffled = uniqueConstituencies.sort(() => 0.5 - Math.random());
+        const randomConstituencies = shuffled.slice(0, 5);
+
+        // Pick candidates from these 5 constituencies
+        let randomCandidates = [];
+        randomConstituencies.forEach(constID => {
+            const candidatesInCon = data.filter(d => d.SCConstID === constID);
+            if (candidatesInCon.length > 0) {
+                // Pick first candidate in this constituency (or you can randomize)
+                const randomIndex = Math.floor(Math.random() * candidatesInCon.length);
+                randomCandidates.push(candidatesInCon[randomIndex]);
+            }
+        });
+
+        // Render in #candidateGrid
+        const container = document.getElementById("candidateGrid");
+        container.innerHTML = "";
+        randomCandidates.forEach(c => {
+            const candidateImg = `https://result.election.gov.np/Images/Candidate/${c.CandidateID || 0}.jpg`;
+            const card = document.createElement("div");
+            card.className = "candidate-card";
+            card.innerHTML = `
+                <img src="${candidateImg}" alt="${c.CandidateName||'-'}" class="candidate-img">
+                <h3>${c.CandidateName||'-'}</h3>
+                <p><strong>Province:</strong> ${c.StateName||'-'}</p>
+                <p><strong>District:</strong> ${c.DistrictName||'-'}</p>
+                <p><strong>Constituency:</strong> ${c.SCConstID||'-'}</p>
+                <p><strong>Party:</strong> ${c.PoliticalPartyName||'-'}</p>
+            `;
+            // Click to go candidate page
+            card.addEventListener("click", ()=> window.location.href=`candidate-detail.html?id=${c.CandidateID}`);
+            container.appendChild(card);
+        });
+
+    } catch(e) {
+        console.error("Failed to load random candidates", e);
+    }
+}
+
+// Call this function after your dashboard loads
+loadRandomCandidates();
