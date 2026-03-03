@@ -99,7 +99,7 @@ function renderTopParties(candidates) {
   });
 }
 
-// ===== TOP CANDIDATES PER CONSTITUENCY (WITH VOTE % AND RANK, 8 RANDOM BOXES) =====
+// ===== TOP CANDIDATES PER CONSTITUENCY (WITH VOTE % AND RANK, 3 RANDOM BOXES) =====
 function renderTopCandidatesByConstituency(candidates) {
   const container = document.getElementById("topCandidatesContainer");
   container.innerHTML = "";
@@ -115,13 +115,13 @@ function renderTopCandidatesByConstituency(candidates) {
   // Get all constituency keys
   const allKeys = Object.keys(constituencyMap);
   // Shuffle and take 8 random
-  const randomKeys = allKeys.sort(() => 0.5 - Math.random()).slice(0, 4);
+  const randomKeys = allKeys.sort(() => 0.5 - Math.random()).slice(0, 3);
 
   randomKeys.forEach(key => {
     const cands = constituencyMap[key];
     const totalVotes = cands.reduce((sum, c) => sum + (c.TotalVoteReceived || 0), 0);
     const sorted = cands.sort((a,b) => (b.TotalVoteReceived || 0) - (a.TotalVoteReceived || 0));
-    const top5 = sorted.slice(0,5);
+    const top5 = sorted.slice(0,3);
 
     const box = document.createElement("div");
     box.className = "constituency-box";
