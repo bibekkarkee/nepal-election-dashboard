@@ -4,26 +4,34 @@ async function loadDashboard() {
     const res = await fetch(mainURL);
     const data = await res.json();
 
-    // ==== TOTALS ====
+    // ==== TOTAL CANDIDATES & PARTIES ====
     const totalCandidates = data.length;
     const totalParties = new Set(data.map(d => d.PoliticalPartyName)).size;
 
-    // ==== Total Electoral Areas (Unique SCConstID) ====
-    const electoralAreas = new Set();
+    // ==== TOTAL ELECTORAL AREAS (165) ====
+    // Correctly sum unique SCConstID per district
+    let districtSeats = {}; // key = district, value = Set of SCConstID
+
     data.forEach(d => {
-        const id = parseInt(d.SCConstID);
-        if (!isNaN(id) && id > 0) {
-            electoralAreas.add(id);
+        const district = d.DistrictName || "Unknown";
+        const seat = d.SCConstID;
+
+        if (seat !== null && seat !== undefined) {
+            if (!districtSeats[district]) districtSeats[district] = new Set();
+            districtSeats[district].add(seat);
         }
     });
-    const totalElectoralAreas = electoralAreas.size; // should now be 165
 
+    const totalElectoralAreas = Object.values(districtSeats)
+        .reduce((sum, seatSet) => sum + seatSet.size, 0);
+
+    // ==== TOTAL DISTRICTS ====
     const totalDistricts = new Set(data.map(d => d.DistrictName)).size;
 
     // ==== ANIMATED COUNTERS ====
     animateCounter("totalCandidates", totalCandidates);
     animateCounter("totalParties", totalParties);
-    animateCounter("totalConstituencies", totalElectoralAreas);
+    animateCounter("totalConstituencies", totalElectoralAreas); // now correct 165
     animateCounter("totalDistricts", totalDistricts);
 
     // ==== COUNT HELPERS ====
