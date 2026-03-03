@@ -5,7 +5,7 @@
 <title>All Candidates - Nepal Election Dashboard</title>
 <link rel="stylesheet" href="style.css">
 <style>
-/* ===== Candidate Page Styles ===== */
+/* Candidate Page Styles */
 body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:0;}
 .page-header { display:flex; justify-content:space-between; align-items:center; background:#1e3c72; color:white; padding:20px 30px; flex-wrap:wrap;}
 .page-header h1 { margin:0; font-size:28px;}
@@ -17,10 +17,14 @@ body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:
 .candidate-card { background:white; border-radius:12px; padding:15px; text-align:left; box-shadow:0 6px 20px rgba(0,0,0,0.08); transition:.3s; }
 .candidate-card:hover { transform:translateY(-5px); }
 .candidate-card img.candidate-img { width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:10px; }
-.candidate-card .party-logo { width:40px; height:40px; object-fit:contain; vertical-align:middle; margin-right:8px; }
+.candidate-card img.party-logo { width:40px; height:40px; object-fit:contain; vertical-align:middle; margin-right:8px; }
 .candidate-card h3 { font-size:18px; margin:5px 0; }
 .candidate-card p { font-size:14px; color:#555; margin:3px 0; }
-/* Dark mode support */
+.pagination { display:flex; justify-content:center; gap:10px; margin:20px 0; flex-wrap:wrap; }
+.pagination button { padding:6px 12px; border:none; border-radius:5px; background:#1e3c72; color:white; cursor:pointer; transition:.3s; }
+.pagination button:hover { background:#ff9f00; color:black; }
+.pagination button.active { background:#ff9f00; color:black; }
+/* Dark mode */
 body.dark .candidate-card { background:#1e1e1e; color:white; }
 body.dark .candidate-card p { color:#ccc; }
 body.dark .page-header { background:#0d1b36; }
@@ -34,41 +38,42 @@ body.dark .page-header { background:#0d1b36; }
 </header>
 
 <section class="candidate-filters">
-    <input type="text" id="searchCandidate" placeholder="Search by candidate name...">
-    <select id="provinceFilter">
-        <option value="">All Provinces</option>
-    </select>
-    <select id="districtFilter">
-        <option value="">All Districts</option>
-    </select>
+    <input type="text" id="searchCandidate" placeholder="Search by name (Nepali or English)">
+    <select id="provinceFilter"><option value="">All Provinces</option></select>
+    <select id="districtFilter"><option value="">All Districts</option></select>
 </section>
 
 <section class="candidate-profiles">
     <div class="candidate-grid" id="allCandidateGrid"></div>
 </section>
 
+<div class="pagination" id="pagination"></div>
+
 <script src="profile.js"></script>
 <script>
 const mainURL = "/api/proxy";
 let allCandidates = [];
+let filteredCandidates = [];
+const itemsPerPage = 24; // number of cards per page
+let currentPage = 1;
 
-async function loadAllCandidates(){
-    try{
+// ===== LOAD CANDIDATES =====
+async function loadAllCandidates() {
+    try {
         const res = await fetch(mainURL);
         const data = await res.json();
         allCandidates = data;
+        filteredCandidates = allCandidates;
 
-        // Populate filters safely
         populateFilters(data);
-        // Show all candidates initially
-        showAllCandidates(allCandidates);
-    } catch(e){
+        renderPage(1);
+    } catch(e) {
         console.error("Failed to fetch candidates", e);
         document.getElementById("allCandidateGrid").innerHTML = "<p style='color:red;text-align:center;'>Failed to load candidates.</p>";
     }
 }
 
-// Safely populate Province & District filters
+// ===== POPULATE FILTERS =====
 function populateFilters(data){
     const provinces = [...new Set(data.map(d=>d.StateName || ""))].filter(Boolean).sort();
     const provinceFilter = document.getElementById("provinceFilter");
@@ -89,7 +94,7 @@ function populateFilters(data){
     });
 }
 
-// Filter/Search handler
+// ===== SEARCH & FILTER HANDLER =====
 document.getElementById("searchCandidate").addEventListener("input", filterHandler);
 document.getElementById("provinceFilter").addEventListener("change", filterHandler);
 document.getElementById("districtFilter").addEventListener("change", filterHandler);
@@ -99,28 +104,74 @@ function filterHandler(){
     const province = document.getElementById("provinceFilter").value;
     const district = document.getElementById("districtFilter").value;
 
-    const filtered = allCandidates.filter(c=>{
-        const nameMatch = !search || (c.CandidateName && c.CandidateName.toLowerCase().includes(search));
+    filteredCandidates = allCandidates.filter(c=>{
+        const nameMatch = !search || (c.CandidateName && normalizeNepali(c.CandidateName).toLowerCase().includes(normalizeNepali(search)));
         const provinceMatch = !province || (c.StateName === province);
         const districtMatch = !district || (c.DistrictName === district);
         return nameMatch && provinceMatch && districtMatch;
     });
 
-    showAllCandidates(filtered);
+    renderPage(1);
 }
 
-// Fix missing fields safely
+// ===== NEPALI NORMALIZATION =====
+function normalizeNepali(str){
+    if(!str) return "";
+    // convert any half-width/full-width or remove special chars if needed
+    return str.normalize('NFC');
+}
+
+// ===== PAGINATION =====
+function renderPage(page){
+    currentPage = page;
+    const container = document.getElementById("allCandidateGrid");
+    container.innerHTML = "";
+    if(filteredCandidates.length === 0){
+        container.innerHTML = "<p style='text-align:center;color:#555;'>No candidates found.</p>";
+        document.getElementById("pagination").innerHTML = "";
+        return;
+    }
+
+    const start = (page-1)*itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = filteredCandidates.slice(start,end);
+
+    // Render candidate cards with lazy loading
+    pageItems.forEach(d=>{
+        const card = createCandidateCard(d);
+        const img = card.querySelector("img.candidate-img");
+        img.loading = "lazy"; // lazy load
+        container.appendChild(card);
+    });
+
+    renderPagination(filteredCandidates.length, itemsPerPage, page);
+}
+
+// ===== RENDER PAGINATION BUTTONS =====
+function renderPagination(totalItems, itemsPerPage, currentPage){
+    const pageCount = Math.ceil(totalItems/itemsPerPage);
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+    if(pageCount<=1) return;
+
+    for(let i=1;i<=pageCount;i++){
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        if(i===currentPage) btn.classList.add("active");
+        btn.addEventListener("click", ()=>renderPage(i));
+        pagination.appendChild(btn);
+    }
+}
+
+// ===== SAFE CANDIDATE CARD =====
 function createCandidateCard(d){
     const candidateImg = `https://result.election.gov.np/Images/Candidate/${d.CandidateID || 0}.jpg`;
-    const partyLogo = d.SYMBOLCODE 
-        ? `https://result.election.gov.np/Images/Symbol/${d.SYMBOLCODE}.jpg` 
-        : "https://via.placeholder.com/40";
+    const partyLogo = d.SYMBOLCODE ? `https://result.election.gov.np/Images/Symbol/${d.SYMBOLCODE}.jpg` : "https://via.placeholder.com/40";
 
     const card = document.createElement("div");
     card.className = "candidate-card";
-
     card.innerHTML = `
-        <img src="${candidateImg}" alt="${d.CandidateName || "Unknown"}" class="candidate-img">
+        <img src="${candidateImg}" alt="${d.CandidateName || "-"}" class="candidate-img" loading="lazy">
         <h3>${d.CandidateName || "-"}</h3>
         <p><img src="${partyLogo}" alt="${d.PoliticalPartyName || "-"}" class="party-logo"> ${d.PoliticalPartyName || "-"}</p>
         <p><strong>Province:</strong> ${d.StateName || "-"}</p>
@@ -131,19 +182,6 @@ function createCandidateCard(d){
         <p><strong>Qualification:</strong> ${d.QUALIFICATION || "-"}</p>
     `;
     return card;
-}
-
-// Show all candidates
-function showAllCandidates(data){
-    const container = document.getElementById("allCandidateGrid");
-    container.innerHTML = "";
-    if(!data || data.length===0){
-        container.innerHTML="<p style='text-align:center;color:#555;'>No candidates found.</p>";
-        return;
-    }
-    data.forEach(d=>{
-        container.appendChild(createCandidateCard(d));
-    });
 }
 
 loadAllCandidates();
