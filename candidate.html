@@ -7,15 +7,51 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<header>
-  <h1>Candidate Profile</h1>
-  <a href="index.html">← Back to list</a>
-</header>
 
-<div class="container">
-  <div id="candidateProfile" class="candidate-profile"></div>
+<div class="profile-container">
+
+    <div class="profile-card">
+
+        <div class="profile-top">
+            <img id="candidateImage" class="candidate-photo">
+
+            <div class="profile-main-info">
+                <div class="name-row">
+                    <h1 id="candidateName"></h1>
+                    <img id="partyLogo" class="party-logo">
+                </div>
+
+                <p id="partyName" class="party-name"></p>
+                <p id="symbolName" class="symbol-name"></p>
+
+                <div class="location">
+                    <span id="province"></span> |
+                    <span id="district"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="vote-section">
+            <h3>मत परिणाम</h3>
+            <p id="votes"></p>
+            <div class="vote-bar">
+                <div id="voteProgress"></div>
+            </div>
+        </div>
+
+        <div class="details-grid">
+            <div><strong>उमेर:</strong> <span id="age"></span></div>
+            <div><strong>लिङ्ग:</strong> <span id="gender"></span></div>
+            <div><strong>शिक्षा:</strong> <span id="education"></span></div>
+            <div><strong>ठेगाना:</strong> <span id="address"></span></div>
+            <div><strong>बुबाको नाम:</strong> <span id="father"></span></div>
+            <div><strong>पति/पत्नी:</strong> <span id="spouse"></span></div>
+        </div>
+
+    </div>
+
 </div>
 
-<script src="js/profile.js"></script>
+<script src="js/candidate.js"></script>
 </body>
 </html>
