@@ -99,7 +99,7 @@ function renderTopParties(candidates) {
   });
 }
 
-// ===== TOP CANDIDATES PER CONSTITUENCY =====
+// ===== TOP CANDIDATES PER CONSTITUENCY (WITH VOTE % AND RANK) =====
 function renderTopCandidatesByConstituency(candidates) {
   const container = document.getElementById("topCandidatesContainer");
   container.innerHTML = "";
@@ -114,7 +114,6 @@ function renderTopCandidatesByConstituency(candidates) {
 
   Object.entries(constituencyMap).forEach(([constituency, cands]) => {
     const totalVotes = cands.reduce((sum, c) => sum + (c.TotalVoteReceived || 0), 0);
-
     const sorted = cands.sort((a,b) => (b.TotalVoteReceived || 0) - (a.TotalVoteReceived || 0));
     const top5 = sorted.slice(0,5);
 
