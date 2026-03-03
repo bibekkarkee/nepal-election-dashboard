@@ -88,7 +88,7 @@ function showRandomCandidateProfiles(data, count = 8) {
 }
 
 // Call this instead of showing all candidates
-showRandomCandidateProfiles(data, 8);
+showRandomCandidateProfiles(data, 4);
     
     
     // ==== TOTAL CANDIDATES & PARTIES ====
