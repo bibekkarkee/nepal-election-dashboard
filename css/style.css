@@ -186,11 +186,11 @@ body.dark .party-card {
 body.dark .party-info p {
     color: #ccc;
 }
-/* ===== HERO BANNER ===== */
+/* Hero Banner */
 .hero-banner {
     background: linear-gradient(135deg, #1e3c72, #2a5298);
     color: white;
-    padding: 80px 20px;
+    padding: 80px 20px 40px 20px;
     text-align: center;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
@@ -198,16 +198,17 @@ body.dark .party-info p {
     overflow: hidden;
 }
 
+/* Hero Heading */
 .hero-banner h1 {
     font-size: 48px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-weight: 700;
     text-shadow: 1px 1px 6px rgba(0,0,0,0.3);
 }
 
 .hero-banner p {
-    font-size: 20px;
-    margin-bottom: 30px;
+    font-size: 18px;
+    margin-bottom: 25px;
     text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
 }
 
@@ -221,32 +222,63 @@ body.dark .party-info p {
     border-radius: 8px;
     text-decoration: none;
     transition: 0.3s;
+    margin-bottom: 30px;
 }
 
 .btn-hero:hover {
     background: #ffb733;
 }
 
-/* Hero decorative circles (optional) */
-.hero-banner::before, .hero-banner::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.05);
+/* Hero Counters */
+.hero-counters {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 30px;
 }
 
-.hero-banner::before {
-    width: 200px;
-    height: 200px;
-    top: -50px;
-    left: -50px;
+.counter-box {
+    background: rgba(255,255,255,0.1);
+    padding: 20px 25px;
+    border-radius: 12px;
+    min-width: 120px;
 }
 
-.hero-banner::after {
-    width: 300px;
-    height: 300px;
-    bottom: -100px;
-    right: -100px;
+.counter-box h3 {
+    font-size: 28px;
+    margin: 0 0 5px;
+}
+
+.counter-box p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Hero Top Parties Logos */
+.hero-top-parties {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.hero-top-parties img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid #fff;
+    transition: 0.3s;
+}
+
+.hero-top-parties img:hover {
+    transform: scale(1.2);
+}
+
+/* Dark Mode */
+body.dark .hero-banner {
+    background: linear-gradient(135deg, #0d1b36, #1a2a52);
 }
 
 /* DARK MODE */
