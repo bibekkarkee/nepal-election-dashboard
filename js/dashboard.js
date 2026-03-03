@@ -9,19 +9,21 @@ async function loadDashboard() {
     const totalParties = new Set(data.map(d => d.PoliticalPartyName)).size;
 
     // ==== Total Electoral Areas (Unique SCConstID) ====
-    const uniqueElectoralAreas = new Set(
-        data
-            .map(d => d.SCConstID)
-            .filter(d => d !== null && d !== undefined)
-    );
-
-    const totalElectoralAreas = uniqueElectoralAreas.size;
+    const electoralAreas = new Set();
+    data.forEach(d => {
+        const id = parseInt(d.SCConstID);
+        if (!isNaN(id) && id > 0) {
+            electoralAreas.add(id);
+        }
+    });
+    const totalElectoralAreas = electoralAreas.size; // should now be 165
 
     const totalDistricts = new Set(data.map(d => d.DistrictName)).size;
 
+    // ==== ANIMATED COUNTERS ====
     animateCounter("totalCandidates", totalCandidates);
     animateCounter("totalParties", totalParties);
-    animateCounter("totalConstituencies", totalElectoralAreas); // updated
+    animateCounter("totalConstituencies", totalElectoralAreas);
     animateCounter("totalDistricts", totalDistricts);
 
     // ==== COUNT HELPERS ====
@@ -59,7 +61,7 @@ async function loadDashboard() {
     createPieChart("partyChart", sortedParties);
 }
 
-// ===== ANIMATED COUNTER =====
+// ===== ANIMATED COUNTER FUNCTION =====
 function animateCounter(id, target) {
     const el = document.getElementById(id);
     let count = 0;
@@ -107,14 +109,12 @@ function createBarChart(canvasId, dataObj) {
         options: {
             responsive: true,
             plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true }
-            }
+            scales: { y: { beginAtZero: true } }
         }
     });
 }
 
-// ===== HELPER: RANDOM COLORS =====
+// ===== RANDOM COLOR HELPER =====
 function generateColors(count) {
     const colors = [];
     for (let i = 0; i < count; i++) {
@@ -124,7 +124,7 @@ function generateColors(count) {
     return colors;
 }
 
-// ===== DARK MODE =====
+// ===== DARK MODE TOGGLE =====
 document.getElementById("darkToggle").addEventListener("click", () => {
     document.body.classList.toggle("dark");
 });
