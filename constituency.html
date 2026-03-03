@@ -6,114 +6,96 @@
 <title>निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-body {font-family:'Segoe UI',sans-serif; margin:0; padding:0; background:#f5f5f5;}
-.header {background:#1e3c72; color:white; padding:20px; text-align:center;}
-.filters {display:flex; gap:15px; padding:20px; flex-wrap:wrap; justify-content:center;}
-.filters select {padding:8px 12px; border-radius:6px; border:1px solid #ccc;}
-.candidate-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; padding:20px;}
-.candidate-card {background:white;padding:15px;border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); cursor:pointer; transition:.3s;}
-.candidate-card:hover {transform:translateY(-5px);}
-.candidate-card img {width:100%; height:180px; object-fit:cover; border-radius:8px; margin-bottom:10px;}
-.candidate-card h3 {margin:5px 0;font-size:18px;}
-.candidate-card p {margin:3px 0;font-size:14px;color:#555;}
-.pagination {display:flex; justify-content:center; gap:10px; margin:20px 0; flex-wrap:wrap;}
-.pagination button {padding:6px 12px; border:none; border-radius:5px; background:#1e3c72; color:white; cursor:pointer;}
-.pagination button.active {background:#ff9f00; color:black;}
-@media(max-width:768px){.filters{flex-direction:column;}.candidate-card img{height:150px;}}
+  body { font-family: Arial, sans-serif; margin:0; padding:0; }
+  header { padding:20px; text-align:center; background:#1e3c72; color:#fff; }
+  h1 { margin:0; font-size:24px; }
+  .constituency-container { max-width:1200px; margin:20px auto; padding:0 10px; }
+  .candidate-card { display:flex; gap:15px; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:12px; align-items:center; background:#fff; transition:0.2s; }
+  .candidate-card:hover { box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+  .candidate-card img { width:70px; height:70px; border-radius:50%; object-fit:cover; }
+  .candidate-info { flex:1; }
+  .progress-bar { background:#ddd; height:12px; border-radius:6px; margin-top:4px; }
+  .progress-fill { height:100%; background:#1e3c72; border-radius:6px; }
+  .rank { font-weight:bold; margin-right:10px; }
+  .back-btn { display:inline-block; margin:20px 0; padding:8px 15px; background:#1e3c72; color:#fff; border-radius:5px; text-decoration:none; }
+  @media (max-width:600px){
+    .candidate-card { flex-direction:column; align-items:flex-start; }
+    .candidate-card img { width:100%; height:auto; }
+  }
 </style>
 </head>
 <body>
 
-<div class="header"><h1>निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</h1></div>
+<header>
+  <h1>निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</h1>
+  <a href="index.html" class="back-btn">🏠 Back to Dashboard</a>
+</header>
 
-<section class="filters">
-<select id="provinceFilter"><option value="">प्रदेश छान्नुहोस्</option></select>
-<select id="constituencyFilter"><option value="">निर्वाचन क्षेत्र छान्नुहोस्</option></select>
-</section>
-
-<section>
-<div class="candidate-grid" id="candidateGrid"></div>
-<div class="pagination" id="pagination"></div>
-</section>
+<div class="constituency-container" id="constituencyContainer">
+  <p>Loading candidates...</p>
+</div>
 
 <script>
-let allCandidates=[],filteredCandidates=[],currentPage=1,itemsPerPage=24;
-
-async function loadCandidates(){
-  try{
+async function loadConstituency() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const constituency = params.get('const'); // e.g., "1 - Kathmandu"
+    
     const res = await fetch("/.netlify/functions/proxy");
     const json = await res.json();
-    allCandidates = JSON.parse(json.contents);
+    const candidates = JSON.parse(json.contents);
 
-    // Populate province
-    const provinceSelect = document.getElementById("provinceFilter");
-    const provinces = [...new Set(allCandidates.map(c=>c.StateName))].filter(Boolean);
-    provinces.forEach(p=>{let opt=document.createElement("option"); opt.value=p; opt.textContent=p; provinceSelect.appendChild(opt);});
+    // Filter by selected constituency
+    let filtered = candidates;
+    if(constituency){
+      filtered = candidates.filter(c => (c.SCConstID + " - " + c.DistrictName) === constituency);
+    }
 
-    populateConstituencies();
-    filteredCandidates = allCandidates;
-    renderCandidates();
-  }catch(err){
+    if(filtered.length === 0){
+      document.getElementById("constituencyContainer").innerHTML = "<p style='color:red;text-align:center;'>No candidates found for this constituency.</p>";
+      return;
+    }
+
+    // Total votes in this constituency
+    const totalVotes = filtered.reduce((sum, c) => sum + (c.TotalVoteReceived || 0), 0);
+
+    const container = document.getElementById("constituencyContainer");
+    container.innerHTML = "";
+
+    // Sort by votes descending
+    const sorted = filtered.sort((a,b)=> (b.TotalVoteReceived || 0) - (a.TotalVoteReceived || 0));
+
+    sorted.forEach((c, index)=>{
+      const percent = totalVotes ? ((c.TotalVoteReceived || 0)/totalVotes*100).toFixed(1) : 0;
+      const rankLabel = index === 0 ? "🥇 1st" : index === 1 ? "🥈 2nd" : index === 2 ? "🥉 3rd" : `${index+1}th`;
+
+      const card = document.createElement("div");
+      card.className = "candidate-card";
+      card.innerHTML = `
+        <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
+        <div class="candidate-info">
+          <span class="rank">${rankLabel}</span>
+          <strong>${c.CandidateName}</strong><br>
+          Party: ${c.PoliticalPartyName}<br>
+          Province: ${c.StateName}, District: ${c.DistrictName}, Constituency: ${c.SCConstID}<br>
+          Votes: ${c.TotalVoteReceived || 0} / ${totalVotes} (${percent}%)
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${percent}%"></div>
+          </div>
+        </div>
+      `;
+      card.addEventListener("click", ()=> window.location.href=`candidate-detail.html?id=${c.CandidateID}`);
+      container.appendChild(card);
+    });
+
+  } catch(err){
     console.error(err);
-    document.getElementById("candidateGrid").innerHTML="<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
+    document.getElementById("constituencyContainer").innerHTML = "<p style='color:red;text-align:center;'>Failed to load candidates.</p>";
   }
 }
 
-function populateConstituencies(province=""){
-  const sel = document.getElementById("constituencyFilter");
-  sel.innerHTML='<option value="">निर्वाचन क्षेत्र छान्नुहोस्</option>';
-  let filtered = province ? allCandidates.filter(c=>c.StateName===province) : allCandidates;
-  const constituencies = [...new Set(filtered.map(c=>c.SCConstID))].sort((a,b)=>a-b);
-  constituencies.forEach(c=>{let opt=document.createElement("option"); opt.value=c; opt.textContent=`निर्वाचन क्षेत्र ${c}`; sel.appendChild(opt);});
-}
-
-document.getElementById("provinceFilter").addEventListener("change",function(){
-  const prov=this.value; populateConstituencies(prov);
-  filteredCandidates = prov ? allCandidates.filter(c=>c.StateName===prov) : allCandidates;
-  currentPage=1; renderCandidates();
-});
-
-document.getElementById("constituencyFilter").addEventListener("change",function(){
-  const cons=this.value;
-  filteredCandidates = cons ? allCandidates.filter(c=>c.SCConstID==cons) : allCandidates;
-  currentPage=1; renderCandidates();
-});
-
-function renderCandidates(){
-  const container=document.getElementById("candidateGrid");
-  container.innerHTML="";
-  const dataToShow=filteredCandidates.slice((currentPage-1)*itemsPerPage,currentPage*itemsPerPage);
-  dataToShow.forEach(c=>{
-    const card=document.createElement("div");
-    card.className="candidate-card";
-    card.innerHTML=`
-      <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
-      <h3>${c.CandidateName}</h3>
-      <p><strong>Province:</strong> ${c.StateName}</p>
-      <p><strong>District:</strong> ${c.DistrictName}</p>
-      <p><strong>Constituency:</strong> ${c.SCConstID}</p>
-      <p><strong>Party:</strong> ${c.PoliticalPartyName}</p>
-    `;
-    card.addEventListener("click",()=>window.location.href=`candidate-detail.html?id=${c.CandidateID}`);
-    container.appendChild(card);
-  });
-  renderPagination();
-}
-
-function renderPagination(){
-  const pagination=document.getElementById("pagination");
-  pagination.innerHTML="";
-  const pageCount=Math.ceil(filteredCandidates.length/itemsPerPage);
-  if(pageCount<=1) return;
-  for(let i=1;i<=pageCount;i++){
-    const btn=document.createElement("button"); btn.textContent=i;
-    if(i===currentPage) btn.classList.add("active");
-    btn.addEventListener("click",()=>{currentPage=i; renderCandidates();});
-    pagination.appendChild(btn);
-  }
-}
-
-loadCandidates();
+loadConstituency();
 </script>
+
 </body>
 </html>
