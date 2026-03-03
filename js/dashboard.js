@@ -1,5 +1,3 @@
-// dashboard.js
-
 async function loadDashboard() {
   try {
     const res = await fetch("/.netlify/functions/proxy");
@@ -10,8 +8,9 @@ async function loadDashboard() {
     const totalCandidates = candidates.length;
     const totalDistricts = [...new Set(candidates.map(c => c.DistrictName))].length;
     const totalParties = [...new Set(candidates.map(c => c.PoliticalPartyName))].length;
-    const totalConstituencies = 165; // total electoral areas
+    const totalConstituencies = 165; // Nepal electoral areas
 
+    // Animate counters
     animateCounter("totalCandidates", totalCandidates);
     animateCounter("totalDistricts", totalDistricts);
     animateCounter("totalParties", totalParties);
@@ -35,9 +34,6 @@ async function loadDashboard() {
       card.addEventListener("click", () => window.location.href = `candidate-detail.html?id=${c.CandidateID}`);
       candidateGrid.appendChild(card);
     });
-
-    // ===== TOP PARTIES =====
-    renderTopParties(candidates);
 
     // ===== CHARTS =====
     renderGenderChart(candidates);
@@ -63,37 +59,6 @@ function animateCounter(id, end) {
     }
     el.textContent = start;
   }, 15);
-}
-
-// ===== TOP PARTIES BY CANDIDATE COUNT =====
-function renderTopParties(candidates) {
-  const container = document.getElementById("topPartiesContainer");
-  container.innerHTML = "";
-
-  const partyCounts = {};
-  candidates.forEach(c => {
-    if(c.PoliticalPartyName){
-      partyCounts[c.PoliticalPartyName] = (partyCounts[c.PoliticalPartyName] || 0) + 1;
-    }
-  });
-
-  const sortedParties = Object.entries(partyCounts)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,10);
-
-  sortedParties.forEach(([partyName, count])=>{
-    const card = document.createElement("div");
-    card.className="party-card";
-    card.style = "display:flex; align-items:center; gap:10px; padding:10px; background:#fff; border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,0.1); margin-bottom:10px;";
-    card.innerHTML=`
-      <div style="flex-shrink:0; width:40px; height:40px; background:#1e3c72; color:#fff; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:bold;">${partyName[0]}</div>
-      <div>
-        <strong>${partyName}</strong> <br>
-        Candidates: ${count}
-      </div>
-    `;
-    container.appendChild(card);
-  });
 }
 
 // ===== CHART FUNCTIONS =====
@@ -159,5 +124,5 @@ function renderStateChart(candidates) {
   });
 }
 
-// ===== LOAD DASHBOARD =====
+// Load dashboard
 loadDashboard();
