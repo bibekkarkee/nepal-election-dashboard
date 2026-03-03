@@ -123,6 +123,70 @@ body.dark .dark-btn {
   background: #f39c12;
 }
 
+/* ===== TOP PARTIES CARDS ===== */
+.top-parties-section {
+    margin-top: 50px;
+}
+
+.top-parties-section h2 {
+    margin-bottom: 20px;
+    color: #1e3c72;
+}
+
+.top-parties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.party-card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.party-card:hover {
+    transform: translateY(-5px);
+}
+
+.party-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.party-info {
+    flex: 1;
+}
+
+.party-info h4 {
+    margin: 0 0 5px;
+    font-size: 16px;
+}
+
+.party-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+/* DARK MODE */
+body.dark .party-card {
+    background: #1e1e1e;
+    color: white;
+}
+
+body.dark .party-info p {
+    color: #ccc;
+}
+
 ul {
   padding-left: 20px;
 }
