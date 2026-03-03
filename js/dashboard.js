@@ -10,7 +10,7 @@ async function loadDashboard() {
     const totalCandidates = candidates.length;
     const totalDistricts = [...new Set(candidates.map(c => c.DistrictName))].length;
     const totalParties = [...new Set(candidates.map(c => c.PoliticalPartyName))].length;
-    const totalConstituencies = 165; // total electoral areas
+    const totalConstituencies = 165;
 
     animateCounter("totalCandidates", totalCandidates);
     animateCounter("totalDistricts", totalDistricts);
@@ -39,6 +39,9 @@ async function loadDashboard() {
     // ===== TOP PARTIES =====
     renderTopParties(candidates);
 
+    // ===== TOP CANDIDATES PER CONSTITUENCY =====
+    renderTopCandidatesByConstituency(candidates);
+
     // ===== CHARTS =====
     renderGenderChart(candidates);
     renderAgeChart(candidates);
@@ -65,7 +68,7 @@ function animateCounter(id, end) {
   }, 15);
 }
 
-// ===== TOP PARTIES BY CANDIDATE COUNT =====
+// ===== TOP PARTIES =====
 function renderTopParties(candidates) {
   const container = document.getElementById("topPartiesContainer");
   container.innerHTML = "";
@@ -96,7 +99,43 @@ function renderTopParties(candidates) {
   });
 }
 
-// ===== CHART FUNCTIONS =====
+// ===== TOP CANDIDATES PER CONSTITUENCY =====
+function renderTopCandidatesByConstituency(candidates) {
+  const container = document.getElementById("topCandidatesContainer");
+  container.innerHTML = "";
+
+  const constituencyMap = {};
+  candidates.forEach(c => {
+    const key = c.SCConstID + " - " + c.DistrictName;
+    if (!constituencyMap[key]) constituencyMap[key] = [];
+    constituencyMap[key].push(c);
+  });
+
+  Object.entries(constituencyMap).forEach(([constituency, cands]) => {
+    const sorted = cands.sort((a,b) => b.TotalVoteReceived - a.TotalVoteReceived).slice(0,5);
+    const box = document.createElement("div");
+    box.className = "constituency-box";
+    box.innerHTML = `<h3>${constituency}</h3>`;
+
+    sorted.forEach(c => {
+      const row = document.createElement("div");
+      row.className = "candidate-row";
+      row.innerHTML = `
+        <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
+        <div>
+          <strong>${c.CandidateName}</strong>
+          Party: ${c.PoliticalPartyName}<br>
+          Votes: ${c.TotalVoteReceived || 0}
+        </div>
+      `;
+      box.appendChild(row);
+    });
+
+    container.appendChild(box);
+  });
+}
+
+// ===== CHARTS =====
 function renderGenderChart(candidates) {
   const male = candidates.filter(c => c.Gender === "पुरुष").length;
   const female = candidates.filter(c => c.Gender === "महिला").length;
