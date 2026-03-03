@@ -92,7 +92,7 @@ function showTopPartiesCards(data, topN = 5) {
     sortedParties.forEach(([partyName, candidateCount])=>{
         const symbolCode = partySymbol[partyName];
         const logoURL = symbolCode 
-            ? `https://result.election.gov.np/Images/Symbol/${symbolCode}.jpg` 
+            ? `https://result.election.gov.np/Images/Symbols/${symbolCode}.jpg` 
             : "https://via.placeholder.com/50";
 
         const card = document.createElement("div");
