@@ -1,10 +1,22 @@
-export default async function handler(req, res) {
-  const url = "https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
+// proxy.js
+exports.handler = async function() {
   try {
-    const response = await fetch(url);
-    const data = await response.json();
-    res.status(200).json(data);
+    const url = "https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
+    const res = await fetch(url);
+    if (!res.ok) {
+      return { statusCode: res.status, body: `Failed: ${res.statusText}` };
+    }
+
+    const data = await res.text();
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: data
+    };
   } catch (err) {
-    res.status(500).json({ error: "Cannot fetch data" });
+    return { statusCode: 500, body: `Server Error: ${err.message}` };
   }
-}
+};
