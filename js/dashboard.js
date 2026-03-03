@@ -7,9 +7,15 @@ async function loadDashboard() {
     // ==== TOTALS ====
     const totalCandidates = data.length;
     const totalParties = new Set(data.map(d=>d.PoliticalPartyName)).size;
-// Sum all SCConstID values
-const totalElectoralAreas = data.reduce((sum, d) => sum + (Number(d.SCConstID) || 0), 0);
-animateCounter("totalConstituencies", totalElectoralAreas);
+// Get unique electoral areas (SCConstID) from data
+const uniqueElectoralAreas = new Set(
+    data
+        .map(d => d.SCConstID)
+        .filter(d => d !== null && d !== undefined)
+);
+
+animateCounter("totalConstituencies", uniqueElectoralAreas.size);
+    
     const totalDistricts = new Set(data.map(d=>d.DistrictName)).size;
 
     animateCounter("totalCandidates", totalCandidates);
