@@ -115,7 +115,7 @@ function renderTopCandidatesByConstituency(candidates) {
   // Get all constituency keys
   const allKeys = Object.keys(constituencyMap);
   // Shuffle and take 8 random
-  const randomKeys = allKeys.sort(() => 0.5 - Math.random()).slice(0, 8);
+  const randomKeys = allKeys.sort(() => 0.5 - Math.random()).slice(0, 4);
 
   randomKeys.forEach(key => {
     const cands = constituencyMap[key];
