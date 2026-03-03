@@ -8,47 +8,16 @@
 <link rel="stylesheet" href="css/style.css">
  <style>
   /* ===== Top Candidates Boxes ===== */
-.top-candidates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.constituency-box {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  padding: 20px;
-}
-
-.constituency-box h3 {
-  margin-bottom: 15px;
-  color: #1e3c72;
-}
-
-.candidate-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.candidate-row img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
-  border: 2px solid #1e3c72;
-}
-
-.candidate-row div {
-  font-size: 14px;
-}
-
-.candidate-row div strong {
-  display: block;
-}
+.top-candidates-section { max-width:1200px; margin:20px auto; padding:0 10px; }
+  .top-candidates-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:15px; }
+  .constituency-box { background:#fff; padding:15px; border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,0.1); }
+  .constituency-box h3 { margin:0 0 10px 0; font-size:18px; display:flex; justify-content:space-between; align-items:center; }
+  .candidate-row { display:flex; gap:10px; margin-bottom:10px; align-items:center; }
+  .candidate-row img { width:50px; height:50px; border-radius:50%; object-fit:cover; }
+  .candidate-row .progress-bar { flex:1; background:#ddd; height:10px; border-radius:5px; margin-top:4px; }
+  .candidate-row .progress-fill { height:100%; background:#1e3c72; border-radius:5px; }
+  .candidate-row strong { font-size:14px; }
+  @media(max-width:600px){ .candidate-row { flex-direction:column; align-items:flex-start; } }
  </style>
 </head>
 <body>
@@ -104,6 +73,14 @@
   </div>
 </section>
 
+<!-- ===== TOP CANDIDATES BY CONSTITUENCY ===== -->
+<section class="top-candidates-section" id="topCandidatesContainerWrapper">
+  <h2>Top Candidates by Constituency (Random 8)</h2>
+  <div id="topCandidatesContainer" class="top-candidates-grid">
+    <!-- 8 random constituency boxes will be inserted here dynamically -->
+  </div>
+</section>
+ 
 
  <!-- ===== DASHBOARD ANALYTICS SECTION ===== -->
   <div class="charts-grid">
@@ -136,14 +113,6 @@
 </div>
 
 
-
-<!-- ===== TOP CANDIDATES PER CONSTITUENCY ===== -->
-<section class="top-candidates-section">
-  <h2>Top 5 Candidates by Party in Constituency</h2>
-  <div id="topCandidatesContainer" class="top-candidates-grid">
-    <!-- Boxes will be inserted dynamically -->
-  </div>
-</section>
 
 
 <button id="darkToggle" class="dark-btn">🌙 Dark Mode</button>
