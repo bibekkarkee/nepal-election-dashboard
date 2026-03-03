@@ -1,214 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>All Candidates - Nepal Election Dashboard</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* =========================
-           Candidate Page Specific Styles
-           ========================= */
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 0;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1e3c72;
-            color: white;
-            padding: 20px 30px;
-            flex-wrap: wrap;
-        }
-
-        .page-header h1 {
-            margin: 0;
-            font-size: 28px;
-        }
-
-        .btn-hero {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            color: white;
-            background: #ff9f00;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        .btn-hero:hover {
-            background: #ffb733;
-        }
-
-        .candidate-filters {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px;
-            flex-wrap: wrap;
-        }
-
-        .candidate-filters input,
-        .candidate-filters select {
-            padding: 8px 12px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        .candidate-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            padding: 0 20px 40px 20px;
-        }
-
-        .candidate-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            text-align: left;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-            transition: 0.3s;
-        }
-
-        .candidate-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .candidate-card img.candidate-img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .candidate-card .party-logo {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-
-        .candidate-card h3 {
-            font-size: 18px;
-            margin: 5px 0;
-        }
-
-        .candidate-card p {
-            font-size: 14px;
-            color: #555;
-            margin: 3px 0;
-        }
-
-        /* Dark Mode */
-        body.dark .candidate-card {
-            background: #1e1e1e;
-            color: white;
-        }
-
-        body.dark .candidate-card p {
-            color: #ccc;
-        }
-
-        body.dark .page-header {
-            background: #0d1b36;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>All Candidates - Nepal Election Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<style>
+/* ===== Candidate Page Styles ===== */
+body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:0;}
+.page-header { display:flex; justify-content:space-between; align-items:center; background:#1e3c72; color:white; padding:20px 30px; flex-wrap:wrap;}
+.page-header h1 { margin:0; font-size:28px;}
+.btn-hero {display:inline-block; padding:10px 20px; font-size:14px; font-weight:600; color:white; background:#ff9f00; border-radius:6px; text-decoration:none; transition:.3s;}
+.btn-hero:hover { background:#ffb733;}
+.candidate-filters { display:flex; justify-content:center; gap:15px; margin:20px; flex-wrap:wrap; }
+.candidate-filters input, .candidate-filters select { padding:8px 12px; font-size:14px; border-radius:6px; border:1px solid #ccc; }
+.candidate-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:25px; padding:0 20px 40px 20px; }
+.candidate-card { background:white; border-radius:12px; padding:15px; text-align:left; box-shadow:0 6px 20px rgba(0,0,0,0.08); transition:.3s; }
+.candidate-card:hover { transform:translateY(-5px); }
+.candidate-card img.candidate-img { width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:10px; }
+.candidate-card .party-logo { width:40px; height:40px; object-fit:contain; vertical-align:middle; margin-right:8px; }
+.candidate-card h3 { font-size:18px; margin:5px 0; }
+.candidate-card p { font-size:14px; color:#555; margin:3px 0; }
+/* Dark mode support */
+body.dark .candidate-card { background:#1e1e1e; color:white; }
+body.dark .candidate-card p { color:#ccc; }
+body.dark .page-header { background:#0d1b36; }
+</style>
 </head>
 <body>
-    <!-- ===== PAGE HEADER ===== -->
-    <header class="page-header">
-        <h1>All Candidates</h1>
-        <a href="index.html" class="btn-hero">Back to Dashboard</a>
-    </header>
 
-    <!-- ===== FILTERS ===== -->
-    <section class="candidate-filters">
-        <input type="text" id="searchCandidate" placeholder="Search by candidate name...">
-        <select id="provinceFilter">
-            <option value="">All Provinces</option>
-        </select>
-        <select id="districtFilter">
-            <option value="">All Districts</option>
-        </select>
-    </section>
+<header class="page-header">
+    <h1>All Candidates</h1>
+    <a href="index.html" class="btn-hero">Back to Dashboard</a>
+</header>
 
-    <!-- ===== CANDIDATE GRID ===== -->
-    <section class="candidate-profiles">
-        <div class="candidate-grid" id="allCandidateGrid"></div>
-    </section>
+<section class="candidate-filters">
+    <input type="text" id="searchCandidate" placeholder="Search by candidate name...">
+    <select id="provinceFilter">
+        <option value="">All Provinces</option>
+    </select>
+    <select id="districtFilter">
+        <option value="">All Districts</option>
+    </select>
+</section>
 
-    <!-- ===== JS ===== -->
-    <script src="profile.js"></script>
-    <script>
-        const mainURL = "/api/proxy";
-        let allCandidates = [];
+<section class="candidate-profiles">
+    <div class="candidate-grid" id="allCandidateGrid"></div>
+</section>
 
-        async function loadAllCandidates() {
-            try {
-                const res = await fetch(mainURL);
-                const data = await res.json();
-                allCandidates = data;
+<script src="profile.js"></script>
+<script>
+const mainURL = "/api/proxy";
+let allCandidates = [];
 
-                populateFilters(data);
-                showAllCandidates(allCandidates);
-            } catch(e) {
-                console.error("Error fetching candidate data:", e);
-                document.getElementById("allCandidateGrid").innerHTML = "<p style='color:red; text-align:center;'>Failed to load candidates.</p>";
-            }
-        }
+async function loadAllCandidates(){
+    try{
+        const res = await fetch(mainURL);
+        const data = await res.json();
+        allCandidates = data;
 
-        // Populate Province & District Filters
-        function populateFilters(data) {
-            const provinces = [...new Set(data.map(d => d.StateName))].sort();
-            const provinceFilter = document.getElementById("provinceFilter");
-            provinces.forEach(p => {
-                const option = document.createElement("option");
-                option.value = p;
-                option.textContent = p;
-                provinceFilter.appendChild(option);
-            });
+        // Populate filters safely
+        populateFilters(data);
+        // Show all candidates initially
+        showAllCandidates(allCandidates);
+    } catch(e){
+        console.error("Failed to fetch candidates", e);
+        document.getElementById("allCandidateGrid").innerHTML = "<p style='color:red;text-align:center;'>Failed to load candidates.</p>";
+    }
+}
 
-            const districts = [...new Set(data.map(d => d.DistrictName))].sort();
-            const districtFilter = document.getElementById("districtFilter");
-            districts.forEach(d => {
-                const option = document.createElement("option");
-                option.value = d;
-                option.textContent = d;
-                districtFilter.appendChild(option);
-            });
-        }
+// Safely populate Province & District filters
+function populateFilters(data){
+    const provinces = [...new Set(data.map(d=>d.StateName || ""))].filter(Boolean).sort();
+    const provinceFilter = document.getElementById("provinceFilter");
+    provinces.forEach(p=>{
+        const option = document.createElement("option");
+        option.value = p;
+        option.textContent = p;
+        provinceFilter.appendChild(option);
+    });
 
-        // Filter & Search
-        document.getElementById("searchCandidate").addEventListener("input", filterCandidatesHandler);
-        document.getElementById("provinceFilter").addEventListener("change", filterCandidatesHandler);
-        document.getElementById("districtFilter").addEventListener("change", filterCandidatesHandler);
+    const districts = [...new Set(data.map(d=>d.DistrictName || ""))].filter(Boolean).sort();
+    const districtFilter = document.getElementById("districtFilter");
+    districts.forEach(d=>{
+        const option = document.createElement("option");
+        option.value = d;
+        option.textContent = d;
+        districtFilter.appendChild(option);
+    });
+}
 
-        function filterCandidatesHandler() {
-            const search = document.getElementById("searchCandidate").value;
-            const province = document.getElementById("provinceFilter").value;
-            const district = document.getElementById("districtFilter").value;
+// Filter/Search handler
+document.getElementById("searchCandidate").addEventListener("input", filterHandler);
+document.getElementById("provinceFilter").addEventListener("change", filterHandler);
+document.getElementById("districtFilter").addEventListener("change", filterHandler);
 
-            const filtered = allCandidates.filter(c => {
-                const matchesSearch = !search || c.CandidateName.toLowerCase().includes(search.toLowerCase());
-                const matchesProvince = !province || c.StateName === province;
-                const matchesDistrict = !district || c.DistrictName === district;
-                return matchesSearch && matchesProvince && matchesDistrict;
-            });
+function filterHandler(){
+    const search = document.getElementById("searchCandidate").value.toLowerCase();
+    const province = document.getElementById("provinceFilter").value;
+    const district = document.getElementById("districtFilter").value;
 
-            showAllCandidates(filtered);
-        }
+    const filtered = allCandidates.filter(c=>{
+        const nameMatch = !search || (c.CandidateName && c.CandidateName.toLowerCase().includes(search));
+        const provinceMatch = !province || (c.StateName === province);
+        const districtMatch = !district || (c.DistrictName === district);
+        return nameMatch && provinceMatch && districtMatch;
+    });
 
-        loadAllCandidates();
-    </script>
+    showAllCandidates(filtered);
+}
+
+// Fix missing fields safely
+function createCandidateCard(d){
+    const candidateImg = `https://result.election.gov.np/Images/Candidate/${d.CandidateID || 0}.jpg`;
+    const partyLogo = d.SYMBOLCODE 
+        ? `https://result.election.gov.np/Images/Symbol/${d.SYMBOLCODE}.jpg` 
+        : "https://via.placeholder.com/40";
+
+    const card = document.createElement("div");
+    card.className = "candidate-card";
+
+    card.innerHTML = `
+        <img src="${candidateImg}" alt="${d.CandidateName || "Unknown"}" class="candidate-img">
+        <h3>${d.CandidateName || "-"}</h3>
+        <p><img src="${partyLogo}" alt="${d.PoliticalPartyName || "-"}" class="party-logo"> ${d.PoliticalPartyName || "-"}</p>
+        <p><strong>Province:</strong> ${d.StateName || "-"}</p>
+        <p><strong>District:</strong> ${d.DistrictName || "-"}</p>
+        <p><strong>Constituency:</strong> ${d.SCConstID || "-"}</p>
+        <p><strong>Gender:</strong> ${d.Gender || "-"}</p>
+        <p><strong>Age:</strong> ${d.AGE_YR || "-"}</p>
+        <p><strong>Qualification:</strong> ${d.QUALIFICATION || "-"}</p>
+    `;
+    return card;
+}
+
+// Show all candidates
+function showAllCandidates(data){
+    const container = document.getElementById("allCandidateGrid");
+    container.innerHTML = "";
+    if(!data || data.length===0){
+        container.innerHTML="<p style='text-align:center;color:#555;'>No candidates found.</p>";
+        return;
+    }
+    data.forEach(d=>{
+        container.appendChild(createCandidateCard(d));
+    });
+}
+
+loadAllCandidates();
+</script>
 </body>
 </html>
