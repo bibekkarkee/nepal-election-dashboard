@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candidates by Electoral Area - Nepal Election Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:0;}
+.page-header { display:flex; justify-content:space-between; align-items:center; background:#1e3c72; color:white; padding:20px 30px; flex-wrap:wrap;}
+.page-header h1 { margin:0; font-size:28px;}
+.btn-hero {display:inline-block; padding:10px 20px; font-size:14px; font-weight:600; color:white; background:#ff9f00; border-radius:6px; text-decoration:none; transition:.3s;}
+.btn-hero:hover { background:#ffb733;}
+
+/* Filters */
+.filters { display:flex; gap:15px; padding:20px; flex-wrap:wrap;}
+.filters select { padding:8px 12px; font-size:14px; border-radius:6px; border:1px solid #ccc; }
+
+/* Candidate cards */
+.candidate-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:25px; padding:0 20px 40px 20px; }
+.candidate-card { background:white; border-radius:12px; padding:15px; text-align:left; box-shadow:0 6px 20px rgba(0,0,0,0.08); transition:.3s; cursor:pointer;}
+.candidate-card:hover { transform:translateY(-5px); }
+.candidate-card img.candidate-img { width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:10px; }
+.candidate-card h3 { font-size:18px; margin:5px 0; }
+.candidate-card p { font-size:14px; color:#555; margin:3px 0; }
+
+/* Pagination */
+.pagination { display:flex; justify-content:center; gap:10px; margin:20px 0; flex-wrap:wrap; }
+.pagination button { padding:6px 12px; border:none; border-radius:5px; background:#1e3c72; color:white; cursor:pointer; transition:.3s; }
+.pagination button:hover { background:#ff9f00; color:black; }
+.pagination button.active { background:#ff9f00; color:black; }
+
+/* Mobile Responsive */
+@media (max-width:768px){
+  .filters { flex-direction: column; }
+  .candidate-card img.candidate-img { height:180px; }
+}
+@media (max-width:480px){
+  .candidate-card img.candidate-img { height:150px; }
+  .candidate-card h3 { font-size:16px; }
+  .candidate-card p { font-size:13px; }
+}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+    <h1>Candidates by Electoral Area</h1>
+    <a href="index.html" class="btn-hero">Back to Dashboard</a>
+</header>
+
+<section class="filters">
+    <select id="constituencyFilter">
+        <option value="">Select Electoral Area (निर्वाचन क्षेत्र)</option>
+    </select>
+</section>
+
+<section class="candidate-profiles">
+    <div class="candidate-grid" id="candidateGrid">
+        <!-- Candidates will be displayed here -->
+    </div>
+    <div class="pagination" id="pagination"></div>
+</section>
+
+<script src="js/profile.js"></script>
+<script>
+const mainURL = "/api/proxy";
+let allCandidates = [];
+let filteredCandidates = [];
+let currentPage = 1;
+const itemsPerPage = 24;
+
+async function loadCandidatesByConstituency(){
+    try{
+        const res = await fetch(mainURL);
+        const data = await res.json();
+        allCandidates = data;
+
+        // Populate constituency dropdown
+        const constituencies = [...new Set(data.map(d=>d.SCConstID))].sort((a,b)=>a-b);
+        const select = document.getElementById("constituencyFilter");
+        constituencies.forEach(c=>{
+            const option = document.createElement("option");
+            option.value = c;
+            option.textContent = `निर्वाचन क्षेत्र ${c}`;
+            select.appendChild(option);
+        });
+
+        // Default: show first constituency
+        filteredCandidates = [];
+        renderCandidates();
+    } catch(e){
+        console.error("Failed to load candidates", e);
+        document.getElementById("candidateGrid").innerHTML="<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
+    }
+}
+
+// Filter on selection
+document.getElementById("constituencyFilter").addEventListener("change", function(){
+    const selected = this.value;
+    filteredCandidates = selected ? allCandidates.filter(c=>c.SCConstID==selected) : [];
+    currentPage=1;
+    renderCandidates();
+});
+
+function renderCandidates(){
+    const container = document.getElementById("candidateGrid");
+    container.innerHTML="";
+    const dataToShow = filteredCandidates.slice((currentPage-1)*itemsPerPage, currentPage*itemsPerPage);
+
+    dataToShow.forEach(c=>{
+        const imgUrl = `https://result.election.gov.np/Images/Candidate/${c.CandidateID || 0}.jpg`;
+        const card = document.createElement("div");
+        card.className="candidate-card";
+        card.innerHTML=`
+            <img src="${imgUrl}" alt="${c.CandidateName||'-'}" class="candidate-img">
+            <h3>${c.CandidateName||'-'}</h3>
+            <p><strong>Province:</strong> ${c.StateName||'-'}</p>
+            <p><strong>District:</strong> ${c.DistrictName||'-'}</p>
+            <p><strong>Constituency:</strong> ${c.SCConstID||'-'}</p>
+            <p><strong>Party:</strong> ${c.PoliticalPartyName||'-'}</p>
+        `;
+        card.addEventListener("click", ()=>window.location.href=`candidate-detail.html?id=${c.CandidateID}`);
+        container.appendChild(card);
+    });
+
+    renderPagination();
+}
+
+function renderPagination(){
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML="";
+    const pageCount = Math.ceil(filteredCandidates.length/itemsPerPage);
+    if(pageCount<=1) return;
+
+    for(let i=1;i<=pageCount;i++){
+        const btn = document.createElement("button");
+        btn.textContent=i;
+        if(i===currentPage) btn.classList.add("active");
+        btn.addEventListener("click",()=>{ currentPage=i; renderCandidates(); });
+        pagination.appendChild(btn);
+    }
+}
+
+loadCandidatesByConstituency();
+</script>
+</body>
+</html>
