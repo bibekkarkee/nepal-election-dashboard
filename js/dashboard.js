@@ -104,6 +104,7 @@ function renderTopCandidatesByConstituency(candidates) {
   const container = document.getElementById("topCandidatesContainer");
   container.innerHTML = "";
 
+  // Group candidates by constituency
   const constituencyMap = {};
   candidates.forEach(c => {
     const key = c.SCConstID + " - " + c.DistrictName;
@@ -112,20 +113,33 @@ function renderTopCandidatesByConstituency(candidates) {
   });
 
   Object.entries(constituencyMap).forEach(([constituency, cands]) => {
-    const sorted = cands.sort((a,b) => b.TotalVoteReceived - a.TotalVoteReceived).slice(0,5);
+    const totalVotes = cands.reduce((sum, c) => sum + (c.TotalVoteReceived || 0), 0);
+
+    const sorted = cands.sort((a,b) => (b.TotalVoteReceived || 0) - (a.TotalVoteReceived || 0));
+    const top5 = sorted.slice(0,5);
+
     const box = document.createElement("div");
     box.className = "constituency-box";
-    box.innerHTML = `<h3>${constituency}</h3>`;
 
-    sorted.forEach(c => {
+    // Title with "View All" link
+    box.innerHTML = `<h3>${constituency} <a href="constituency.html?const=${encodeURIComponent(constituency)}" style="float:right; font-size:14px; text-decoration:underline;">View All</a></h3>`;
+
+    top5.forEach((c, index) => {
+      const percent = totalVotes ? ((c.TotalVoteReceived || 0) / totalVotes * 100).toFixed(1) : 0;
+      const rankLabel = index === 0 ? "🥇 1st" : index === 1 ? "🥈 2nd" : index === 2 ? "🥉 3rd" : `${index+1}th`;
+
       const row = document.createElement("div");
       row.className = "candidate-row";
+      row.style = "margin-bottom:10px;";
       row.innerHTML = `
         <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
-        <div>
-          <strong>${c.CandidateName}</strong>
+        <div style="flex:1;">
+          <strong>${c.CandidateName}</strong> (${rankLabel})<br>
           Party: ${c.PoliticalPartyName}<br>
-          Votes: ${c.TotalVoteReceived || 0}
+          Votes: ${c.TotalVoteReceived || 0} / ${totalVotes} (${percent}%)<br>
+          <div style="background:#ddd; border-radius:4px; height:10px; margin-top:4px;">
+            <div style="width:${percent}%; background:#1e3c72; height:100%; border-radius:4px;"></div>
+          </div>
         </div>
       `;
       box.appendChild(row);
