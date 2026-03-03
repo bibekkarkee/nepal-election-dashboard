@@ -9,19 +9,15 @@ async function loadDashboard() {
     const totalParties = new Set(data.map(d => d.PoliticalPartyName)).size;
 
     // ==== TOTAL ELECTORAL AREAS (165) ====
-    // Correctly sum unique SCConstID per district
-    let districtSeats = {}; // key = district, value = Set of SCConstID
-
+    let districtSeats = {};
     data.forEach(d => {
         const district = d.DistrictName || "Unknown";
         const seat = d.SCConstID;
-
         if (seat !== null && seat !== undefined) {
             if (!districtSeats[district]) districtSeats[district] = new Set();
             districtSeats[district].add(seat);
         }
     });
-
     const totalElectoralAreas = Object.values(districtSeats)
         .reduce((sum, seatSet) => sum + seatSet.size, 0);
 
@@ -31,7 +27,7 @@ async function loadDashboard() {
     // ==== ANIMATED COUNTERS ====
     animateCounter("totalCandidates", totalCandidates);
     animateCounter("totalParties", totalParties);
-    animateCounter("totalConstituencies", totalElectoralAreas); // now correct 165
+    animateCounter("totalConstituencies", totalElectoralAreas);
     animateCounter("totalDistricts", totalDistricts);
 
     // ==== COUNT HELPERS ====
@@ -61,7 +57,18 @@ async function loadDashboard() {
     // ==== STATE BAR ====
     createBarChart("stateChart", countBy("StateName"));
 
-   // ===== TOP PARTIES CARDS =====
+    // ==== TOP PARTY PIE ====
+    const partyCount = countBy("PoliticalPartyName");
+    const sortedParties = Object.fromEntries(
+        Object.entries(partyCount).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    );
+    createPieChart("partyChart", sortedParties);
+
+    // ==== TOP PARTIES CARDS ====
+    showTopPartiesCards(data, 5);
+}
+
+// ===== TOP PARTIES CARDS FUNCTION =====
 function showTopPartiesCards(data, topN = 5) {
     const countByParty = {};
     const partySymbol = {};
@@ -70,29 +77,26 @@ function showTopPartiesCards(data, topN = 5) {
         const party = d.PoliticalPartyName || "Unknown";
         countByParty[party] = (countByParty[party] || 0) + 1;
 
-        // Save SYMBOLCODE for logo
         if (!partySymbol[party] && d.SYMBOLCODE) {
             partySymbol[party] = d.SYMBOLCODE;
         }
     });
 
-    // Sort by candidate count descending
     const sortedParties = Object.entries(countByParty)
         .sort((a,b)=>b[1]-a[1])
         .slice(0, topN);
 
     const container = document.getElementById("topPartiesContainer");
-    container.innerHTML = ""; // clear
+    container.innerHTML = "";
 
     sortedParties.forEach(([partyName, candidateCount])=>{
         const symbolCode = partySymbol[partyName];
         const logoURL = symbolCode 
             ? `https://result.election.gov.np/Images/Symbol/${symbolCode}.jpg` 
-            : "https://via.placeholder.com/50"; // fallback
+            : "https://via.placeholder.com/50";
 
         const card = document.createElement("div");
         card.className = "party-card";
-
         card.innerHTML = `
             <img src="${logoURL}" alt="${partyName}" class="party-logo">
             <div class="party-info">
@@ -100,13 +104,9 @@ function showTopPartiesCards(data, topN = 5) {
                 <p>Candidates: ${candidateCount}</p>
             </div>
         `;
-
         container.appendChild(card);
     });
 }
-
-// Call after loading data
-showTopPartiesCards(data, 5);
 
 // ===== ANIMATED COUNTER FUNCTION =====
 function animateCounter(id, target) {
