@@ -22,7 +22,7 @@ async function loadCandidate() {
 
     // Party Logo
     const partyLogo = document.getElementById("partyLogo");
-    partyLogo.src = `https://result.election.gov.np/Images/Symbol/${candidate.SYMBOLCODE}.png`;
+    partyLogo.src = `https://result.election.gov.np/Images/Symbols/${candidate.SYMBOLCODE}.jpg`;
     partyLogo.onerror = () => partyLogo.style.display = "block";
 
     // Basic Info
