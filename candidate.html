@@ -1,84 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>All Candidates</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>All Candidates - Nepal Election Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* =========================
+           Candidate Page Specific Styles
+           ========================= */
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e3c72;
+            color: white;
+            padding: 20px 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .btn-hero {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            background: #ff9f00;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-hero:hover {
+            background: #ffb733;
+        }
+
+        .candidate-filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px;
+            flex-wrap: wrap;
+        }
+
+        .candidate-filters input,
+        .candidate-filters select {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 0 20px 40px 20px;
+        }
+
+        .candidate-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: left;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .candidate-card img.candidate-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .candidate-card .party-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .candidate-card h3 {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+
+        .candidate-card p {
+            font-size: 14px;
+            color: #555;
+            margin: 3px 0;
+        }
+
+        /* Dark Mode */
+        body.dark .candidate-card {
+            background: #1e1e1e;
+            color: white;
+        }
+
+        body.dark .candidate-card p {
+            color: #ccc;
+        }
+
+        body.dark .page-header {
+            background: #0d1b36;
+        }
+    </style>
 </head>
 <body>
-  <header class="page-header">
-    <h1>All Candidates</h1>
-    <a href="index.html" class="btn-hero">Back to Dashboard</a>
-  </header>
+    <!-- ===== PAGE HEADER ===== -->
+    <header class="page-header">
+        <h1>All Candidates</h1>
+        <a href="index.html" class="btn-hero">Back to Dashboard</a>
+    </header>
 
-  <!-- ===== FILTERS ===== -->
-  <section class="candidate-filters">
-    <input type="text" id="searchCandidate" placeholder="Search by candidate name...">
-    <select id="provinceFilter">
-      <option value="">All Provinces</option>
-    </select>
-    <select id="districtFilter">
-      <option value="">All Districts</option>
-    </select>
-  </section>
+    <!-- ===== FILTERS ===== -->
+    <section class="candidate-filters">
+        <input type="text" id="searchCandidate" placeholder="Search by candidate name...">
+        <select id="provinceFilter">
+            <option value="">All Provinces</option>
+        </select>
+        <select id="districtFilter">
+            <option value="">All Districts</option>
+        </select>
+    </section>
 
-  <!-- ===== CANDIDATE GRID ===== -->
-  <section class="candidate-profiles">
-    <div class="candidate-grid" id="allCandidateGrid"></div>
-  </section>
+    <!-- ===== CANDIDATE GRID ===== -->
+    <section class="candidate-profiles">
+        <div class="candidate-grid" id="allCandidateGrid"></div>
+    </section>
 
-  <script src="profile.js"></script>
-  <script>
-    const mainURL = "/api/proxy";
-    let allCandidates = [];
+    <!-- ===== JS ===== -->
+    <script src="profile.js"></script>
+    <script>
+        const mainURL = "/api/proxy";
+        let allCandidates = [];
 
-    async function loadAllCandidates() {
-        const res = await fetch(mainURL);
-        const data = await res.json();
-        allCandidates = data;
+        async function loadAllCandidates() {
+            try {
+                const res = await fetch(mainURL);
+                const data = await res.json();
+                allCandidates = data;
 
-        // Populate filters
-        const provinces = [...new Set(data.map(d=>d.StateName))].sort();
-        const provinceFilter = document.getElementById("provinceFilter");
-        provinces.forEach(p => {
-            const option = document.createElement("option");
-            option.value = p;
-            option.textContent = p;
-            provinceFilter.appendChild(option);
-        });
+                populateFilters(data);
+                showAllCandidates(allCandidates);
+            } catch(e) {
+                console.error("Error fetching candidate data:", e);
+                document.getElementById("allCandidateGrid").innerHTML = "<p style='color:red; text-align:center;'>Failed to load candidates.</p>";
+            }
+        }
 
-        const districts = [...new Set(data.map(d=>d.DistrictName))].sort();
-        const districtFilter = document.getElementById("districtFilter");
-        districts.forEach(d => {
-            const option = document.createElement("option");
-            option.value = d;
-            option.textContent = d;
-            districtFilter.appendChild(option);
-        });
+        // Populate Province & District Filters
+        function populateFilters(data) {
+            const provinces = [...new Set(data.map(d => d.StateName))].sort();
+            const provinceFilter = document.getElementById("provinceFilter");
+            provinces.forEach(p => {
+                const option = document.createElement("option");
+                option.value = p;
+                option.textContent = p;
+                provinceFilter.appendChild(option);
+            });
 
-        showAllCandidates(allCandidates);
-    }
+            const districts = [...new Set(data.map(d => d.DistrictName))].sort();
+            const districtFilter = document.getElementById("districtFilter");
+            districts.forEach(d => {
+                const option = document.createElement("option");
+                option.value = d;
+                option.textContent = d;
+                districtFilter.appendChild(option);
+            });
+        }
 
-    loadAllCandidates();
+        // Filter & Search
+        document.getElementById("searchCandidate").addEventListener("input", filterCandidatesHandler);
+        document.getElementById("provinceFilter").addEventListener("change", filterCandidatesHandler);
+        document.getElementById("districtFilter").addEventListener("change", filterCandidatesHandler);
 
-    // ===== FILTER AND SEARCH =====
-    document.getElementById("searchCandidate").addEventListener("input", filterCandidates);
-    document.getElementById("provinceFilter").addEventListener("change", filterCandidates);
-    document.getElementById("districtFilter").addEventListener("change", filterCandidates);
+        function filterCandidatesHandler() {
+            const search = document.getElementById("searchCandidate").value;
+            const province = document.getElementById("provinceFilter").value;
+            const district = document.getElementById("districtFilter").value;
 
-    function filterCandidates() {
-        const search = document.getElementById("searchCandidate").value.toLowerCase();
-        const province = document.getElementById("provinceFilter").value;
-        const district = document.getElementById("districtFilter").value;
+            const filtered = allCandidates.filter(c => {
+                const matchesSearch = !search || c.CandidateName.toLowerCase().includes(search.toLowerCase());
+                const matchesProvince = !province || c.StateName === province;
+                const matchesDistrict = !district || c.DistrictName === district;
+                return matchesSearch && matchesProvince && matchesDistrict;
+            });
 
-        const filtered = allCandidates.filter(c => {
-            return (!province || c.StateName === province)
-                && (!district || c.DistrictName === district)
-                && (!search || c.CandidateName.toLowerCase().includes(search));
-        });
+            showAllCandidates(filtered);
+        }
 
-        showAllCandidates(filtered);
-    }
-  </script>
+        loadAllCandidates();
+    </script>
 </body>
 </html>
