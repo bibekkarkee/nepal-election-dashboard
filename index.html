@@ -1,99 +1,100 @@
 <!DOCTYPE html>
-<html lang="eng">
+<html lang="ne">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nepal Election Dashboard</title>
 <link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* Minimal CSS for hero, counters, candidate cards */
+body {font-family:'Segoe UI',sans-serif; margin:0; padding:0; background:#f5f5f5;}
+.hero-banner {background:#1e3c72;color:#fff;padding:50px 20px;text-align:center;}
+.hero-counters {display:flex; justify-content:center; flex-wrap:wrap; gap:20px; margin-top:20px;}
+.counter-box {background:rgba(255,255,255,0.1);padding:15px 20px;border-radius:10px; min-width:120px;}
+.candidate-grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; padding:20px;}
+.candidate-card {background:white;padding:15px;border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); cursor:pointer; transition:.3s;}
+.candidate-card:hover {transform:translateY(-5px);}
+.candidate-card img {width:100%; height:180px; object-fit:cover; border-radius:8px; margin-bottom:10px;}
+.candidate-card h3 {margin:5px 0;font-size:18px;}
+.candidate-card p {margin:3px 0;font-size:14px;color:#555;}
+</style>
 </head>
 <body>
 
-<header>
+<!-- Hero Section -->
+<section class="hero-banner">
+  <h1>नेपाल निर्वाचन ड्यासबोर्ड</h1>
+  <p>अत्याधुनिक र वास्तविक समयको निर्वाचन परिणामहरू, सबै प्रदेश र जिल्लाहरूको जानकारी सहित।</p>
 
- <!-- ===== HERO BANNER ===== -->
-<section class="hero-banner" id="dashboard">
-  <div class="hero-content">
-    <h1>नेपाल निर्वाचन ड्यासबोर्ड</h1>
-    <p>अत्याधुनिक र वास्तविक समयको निर्वाचन परिणामहरू, सबै प्रदेश र जिल्लाहरूको जानकारी सहित।</p>
-    <a href="/constituency.html" class="btn-hero">Explore Dashboard</a>
-
-    <!-- ===== HERO COUNTERS ===== -->
-    <div class="hero-counters">
-      <div class="counter-box">
-        <h3 id="totalCandidates">0</h3>
-        <p>Total Candidates</p>
-      </div>
-      <div class="counter-box">
-        <h3 id="totalConstituencies">0</h3>
-        <p>Electoral Areas</p>
-      </div>
-      <div class="counter-box">
-        <h3 id="totalDistricts">0</h3>
-        <p>Districts</p>
-      </div>
-      <div class="counter-box">
-        <h3 id="totalParties">0</h3>
-        <p>Political Parties</p>
-      </div>
+  <div class="hero-counters">
+    <div class="counter-box">
+      <h3 id="totalCandidates">0</h3>
+      <p>Candidates</p>
     </div>
-
-    <!-- ===== TOP PARTY LOGOS ===== -->
-    <div class="hero-top-parties" id="heroTopParties">
-      <!-- Party logos will be inserted here dynamically -->
+    <div class="counter-box">
+      <h3 id="totalConstituencies">0</h3>
+      <p>Electoral Areas</p>
+    </div>
+    <div class="counter-box">
+      <h3 id="totalDistricts">0</h3>
+      <p>Districts</p>
+    </div>
+    <div class="counter-box">
+      <h3 id="totalParties">0</h3>
+      <p>Political Parties</p>
     </div>
   </div>
 </section>
-</header>
 
-
-
-
-<!-- ===== CANDIDATE PROFILES SECTION ===== -->
-<section class="candidate-profiles" id="candidateProfiles">
-  <h2>Candidate Profiles</h2>
-  <div class="candidate-grid" id="candidateGrid">
-    <!-- 4 random candidate cards will be inserted here -->
-  </div>
-  <div style="margin-top:20px; text-align:center;">
-    <a href="candidate.html" class="btn-hero">View All Candidates</a>
+<!-- Candidate Profiles Section -->
+<section>
+  <h2 style="text-align:center; margin-top:40px;">Candidate Profiles</h2>
+  <div class="candidate-grid" id="candidateGrid"></div>
+  <div style="text-align:center; margin:20px;">
+    <a href="candidate.html" style="padding:10px 20px; background:#1e3c72; color:#fff; border-radius:8px; text-decoration:none;">View All Candidates</a>
   </div>
 </section>
 
+<script>
+// Fetch data using Netlify proxy
+async function loadDashboard(){
+  try{
+    const res = await fetch("/.netlify/functions/proxy");
+    const json = await res.json();
+    const candidates = JSON.parse(json.contents);
 
- <!-- ===== DASHBOARD ANALYTICS SECTION ===== -->
-  <div class="charts-grid">
-    <div class="chart-box">
-      <h3>Gender Distribution</h3>
-      <canvas id="genderChart"></canvas>
-    </div>
+    // Counters
+    document.getElementById("totalCandidates").textContent = candidates.length;
+    document.getElementById("totalDistricts").textContent = [...new Set(candidates.map(c=>c.DistrictName))].length;
+    document.getElementById("totalParties").textContent = [...new Set(candidates.map(c=>c.PoliticalPartyName))].length;
+    document.getElementById("totalConstituencies").textContent = 165; // total electoral constituencies in Nepal
 
-    <div class="chart-box">
-      <h3>Age Group Distribution</h3>
-      <canvas id="ageChart"></canvas>
-    </div>
+    // Show 8 random candidates
+    const candidateGrid = document.getElementById("candidateGrid");
+    const shuffled = candidates.sort(()=>0.5-Math.random()).slice(0,8);
+    shuffled.forEach(c=>{
+      const card = document.createElement("div");
+      card.className="candidate-card";
+      card.innerHTML=`
+        <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
+        <h3>${c.CandidateName}</h3>
+        <p><strong>Province:</strong> ${c.StateName}</p>
+        <p><strong>District:</strong> ${c.DistrictName}</p>
+        <p><strong>Constituency:</strong> ${c.SCConstID}</p>
+        <p><strong>Party:</strong> ${c.PoliticalPartyName}</p>
+      `;
+      card.addEventListener("click", ()=> window.location.href=`candidate-detail.html?id=${c.CandidateID}`);
+      candidateGrid.appendChild(card);
+    });
 
-    <div class="chart-box">
-      <h3>Registered by State</h3>
-      <canvas id="stateChart"></canvas>
-    </div>
-  </div>
+  }catch(err){
+    console.error(err);
+    document.getElementById("candidateGrid").innerHTML="<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
+  }
+}
+loadDashboard();
+</script>
 
-      <div class="summary-grid">
-  <!-- ===== TOP PARTIES SECTION ===== -->
-<div class="top-parties-section">
-  <h2>Top Parties by Candidate Count</h2>
-  <div class="top-parties-grid" id="topPartiesContainer">
-    <!-- Party cards will be inserted here dynamically -->
-  </div>
-</div>
-  </div>
-
-</div>
-
-<button id="darkToggle" class="dark-btn">🌙 Dark Mode</button>
-
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="js/dashboard.js"></script>
 </body>
 </html>
