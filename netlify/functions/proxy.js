@@ -1,33 +1,23 @@
-// Node 18+ on Netlify supports global fetch, no need to import node-fetch
+// netlify/functions/proxy.js
 
-exports.handler = async function(event, context) {
+exports.handler = async function() {
   try {
     const url = "https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
-    
-    // Fetch the election data
     const res = await fetch(url);
     if (!res.ok) {
-      return {
-        statusCode: res.status,
-        body: `Failed to fetch data: ${res.statusText}`
-      };
+      return { statusCode: res.status, body: `Failed: ${res.statusText}` };
     }
 
-    const data = await res.text(); // Government JSON is plain text
-
+    const data = await res.text();
     return {
       statusCode: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*" // Allow frontend requests from any origin
+        "Access-Control-Allow-Origin": "*"
       },
       body: data
     };
-
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: `Server Error: ${err.message}`
-    };
+    return { statusCode: 500, body: `Server Error: ${err.message}` };
   }
 };
