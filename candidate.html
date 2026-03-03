@@ -6,11 +6,23 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
+  <header class="page-header">
     <h1>All Candidates</h1>
     <a href="index.html" class="btn-hero">Back to Dashboard</a>
   </header>
 
+  <!-- ===== FILTERS ===== -->
+  <section class="candidate-filters">
+    <input type="text" id="searchCandidate" placeholder="Search by candidate name...">
+    <select id="provinceFilter">
+      <option value="">All Provinces</option>
+    </select>
+    <select id="districtFilter">
+      <option value="">All Districts</option>
+    </select>
+  </section>
+
+  <!-- ===== CANDIDATE GRID ===== -->
   <section class="candidate-profiles">
     <div class="candidate-grid" id="allCandidateGrid"></div>
   </section>
@@ -18,14 +30,55 @@
   <script src="profile.js"></script>
   <script>
     const mainURL = "/api/proxy";
+    let allCandidates = [];
 
     async function loadAllCandidates() {
         const res = await fetch(mainURL);
         const data = await res.json();
-        showAllCandidates(data); // profile.js function
+        allCandidates = data;
+
+        // Populate filters
+        const provinces = [...new Set(data.map(d=>d.StateName))].sort();
+        const provinceFilter = document.getElementById("provinceFilter");
+        provinces.forEach(p => {
+            const option = document.createElement("option");
+            option.value = p;
+            option.textContent = p;
+            provinceFilter.appendChild(option);
+        });
+
+        const districts = [...new Set(data.map(d=>d.DistrictName))].sort();
+        const districtFilter = document.getElementById("districtFilter");
+        districts.forEach(d => {
+            const option = document.createElement("option");
+            option.value = d;
+            option.textContent = d;
+            districtFilter.appendChild(option);
+        });
+
+        showAllCandidates(allCandidates);
     }
 
     loadAllCandidates();
+
+    // ===== FILTER AND SEARCH =====
+    document.getElementById("searchCandidate").addEventListener("input", filterCandidates);
+    document.getElementById("provinceFilter").addEventListener("change", filterCandidates);
+    document.getElementById("districtFilter").addEventListener("change", filterCandidates);
+
+    function filterCandidates() {
+        const search = document.getElementById("searchCandidate").value.toLowerCase();
+        const province = document.getElementById("provinceFilter").value;
+        const district = document.getElementById("districtFilter").value;
+
+        const filtered = allCandidates.filter(c => {
+            return (!province || c.StateName === province)
+                && (!district || c.DistrictName === district)
+                && (!search || c.CandidateName.toLowerCase().includes(search));
+        });
+
+        showAllCandidates(filtered);
+    }
   </script>
 </body>
 </html>
