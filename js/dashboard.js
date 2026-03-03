@@ -61,13 +61,52 @@ async function loadDashboard() {
     // ==== STATE BAR ====
     createBarChart("stateChart", countBy("StateName"));
 
-    // ==== TOP PARTY PIE ====
-    const partyCount = countBy("PoliticalPartyName");
-    const sortedParties = Object.fromEntries(
-        Object.entries(partyCount).sort((a, b) => b[1] - a[1]).slice(0, 5)
-    );
-    createPieChart("partyChart", sortedParties);
+   // ===== TOP PARTIES CARDS =====
+function showTopPartiesCards(data, topN = 5) {
+    const countByParty = {};
+    const partySymbol = {};
+
+    data.forEach(d => {
+        const party = d.PoliticalPartyName || "Unknown";
+        countByParty[party] = (countByParty[party] || 0) + 1;
+
+        // Save SYMBOLCODE for logo
+        if (!partySymbol[party] && d.SYMBOLCODE) {
+            partySymbol[party] = d.SYMBOLCODE;
+        }
+    });
+
+    // Sort by candidate count descending
+    const sortedParties = Object.entries(countByParty)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0, topN);
+
+    const container = document.getElementById("topPartiesContainer");
+    container.innerHTML = ""; // clear
+
+    sortedParties.forEach(([partyName, candidateCount])=>{
+        const symbolCode = partySymbol[partyName];
+        const logoURL = symbolCode 
+            ? `https://result.election.gov.np/Images/Symbol/${symbolCode}.jpg` 
+            : "https://via.placeholder.com/50"; // fallback
+
+        const card = document.createElement("div");
+        card.className = "party-card";
+
+        card.innerHTML = `
+            <img src="${logoURL}" alt="${partyName}" class="party-logo">
+            <div class="party-info">
+                <h4>${partyName}</h4>
+                <p>Candidates: ${candidateCount}</p>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
 }
+
+// Call after loading data
+showTopPartiesCards(data, 5);
 
 // ===== ANIMATED COUNTER FUNCTION =====
 function animateCounter(id, target) {
