@@ -3,7 +3,12 @@ const mainURL = "/api/proxy";
 async function loadDashboard() {
     const res = await fetch(mainURL);
     const data = await res.json();
-
+ // ==== Hero Banner====
+document.querySelector('.btn-hero').addEventListener('click', function(e){
+    e.preventDefault();
+    document.querySelector('#dashboard').scrollIntoView({ behavior: 'smooth' });
+});
+    
     // ==== TOTAL CANDIDATES & PARTIES ====
     const totalCandidates = data.length;
     const totalParties = new Set(data.map(d => d.PoliticalPartyName)).size;
