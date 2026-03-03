@@ -7,7 +7,9 @@ async function loadDashboard() {
     // ==== TOTALS ====
     const totalCandidates = data.length;
     const totalParties = new Set(data.map(d=>d.PoliticalPartyName)).size;
-    const totalConstituencies = new Set(data.map(d=>d.SCConstID)).size;
+// Sum all SCConstID values
+const totalElectoralAreas = data.reduce((sum, d) => sum + (Number(d.SCConstID) || 0), 0);
+animateCounter("totalConstituencies", totalElectoralAreas);
     const totalDistricts = new Set(data.map(d=>d.DistrictName)).size;
 
     animateCounter("totalCandidates", totalCandidates);
