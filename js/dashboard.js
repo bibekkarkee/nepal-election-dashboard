@@ -20,7 +20,7 @@ async function loadDashboard() {
     // ===== RANDOM CANDIDATES =====
     const candidateGrid = document.getElementById("candidateGrid");
     candidateGrid.innerHTML = "";
-    const shuffled = candidates.sort(() => 0.5 - Math.random()).slice(0, 8);
+    const shuffled = candidates.sort(() => 0.5 - Math.random()).slice(0, 4);
     shuffled.forEach(c => {
       const card = document.createElement("div");
       card.className = "candidate-card";
