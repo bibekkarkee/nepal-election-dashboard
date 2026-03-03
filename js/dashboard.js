@@ -82,7 +82,7 @@ function renderTopParties(candidates) {
 
   const sortedParties = Object.entries(partyCounts)
     .sort((a,b)=>b[1]-a[1])
-    .slice(0,10);
+    .slice(0,05);
 
   sortedParties.forEach(([partyName, count])=>{
     const card = document.createElement("div");
