@@ -46,11 +46,14 @@ body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:
 <body>
 
 <header class="page-header">
-    <h1>Candidates by Electoral Area</h1>
+    <h1>निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</h1>
     <a href="index.html" class="btn-hero">Back to Dashboard</a>
 </header>
 
 <section class="filters">
+    <select id="provinceFilter">
+        <option value="">Select Province (प्रदेश)</option>
+    </select>
     <select id="constituencyFilter">
         <option value="">Select Electoral Area (निर्वाचन क्षेत्र)</option>
     </select>
@@ -58,49 +61,70 @@ body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:
 
 <section class="candidate-profiles">
     <div class="candidate-grid" id="candidateGrid">
-        <!-- Candidates will be displayed here -->
+        <!-- Candidates will appear here -->
     </div>
     <div class="pagination" id="pagination"></div>
 </section>
 
-<script src="js/profile.js"></script>
 <script>
-const mainURL = "/api/proxy";
+const API_URL = "https://api.allorigins.win/raw?url=https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
 let allCandidates = [];
 let filteredCandidates = [];
 let currentPage = 1;
 const itemsPerPage = 24;
 
-async function loadCandidatesByConstituency(){
-    try{
-        const res = await fetch(mainURL);
-        const data = await res.json();
-        allCandidates = data;
+async function loadCandidates() {
+    try {
+        const res = await fetch(API_URL);
+        allCandidates = await res.json();
 
-        // Populate constituency dropdown
-        const constituencies = [...new Set(data.map(d=>d.SCConstID))].sort((a,b)=>a-b);
-        const select = document.getElementById("constituencyFilter");
-        constituencies.forEach(c=>{
-            const option = document.createElement("option");
-            option.value = c;
-            option.textContent = `निर्वाचन क्षेत्र ${c}`;
-            select.appendChild(option);
+        // Populate Province dropdown
+        const provinces = [...new Set(allCandidates.map(c=>c.StateName))].filter(Boolean);
+        const provinceSelect = document.getElementById("provinceFilter");
+        provinces.forEach(p=>{
+            const opt = document.createElement("option");
+            opt.value=p;
+            opt.textContent=p;
+            provinceSelect.appendChild(opt);
         });
 
-        // Default: show first constituency
-        filteredCandidates = [];
-        renderCandidates();
-    } catch(e){
-        console.error("Failed to load candidates", e);
+        populateConstituencies(); // populate all initially
+        renderCandidates(); // default empty
+    } catch(err){
+        console.error("Failed to load candidates:", err);
         document.getElementById("candidateGrid").innerHTML="<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
     }
 }
 
-// Filter on selection
+function populateConstituencies(province=""){
+    const constituencySelect = document.getElementById("constituencyFilter");
+    constituencySelect.innerHTML='<option value="">Select Electoral Area (निर्वाचन क्षेत्र)</option>';
+
+    let filtered = province ? allCandidates.filter(c=>c.StateName===province) : allCandidates;
+    const constituencies = [...new Set(filtered.map(c=>c.SCConstID))].sort((a,b)=>a-b);
+
+    constituencies.forEach(c=>{
+        const opt = document.createElement("option");
+        opt.value=c;
+        opt.textContent=`निर्वाचन क्षेत्र ${c}`;
+        constituencySelect.appendChild(opt);
+    });
+}
+
+// Province filter change
+document.getElementById("provinceFilter").addEventListener("change", function(){
+    const prov = this.value;
+    populateConstituencies(prov);
+    filteredCandidates = [];
+    currentPage = 1;
+    renderCandidates();
+});
+
+// Constituency filter change
 document.getElementById("constituencyFilter").addEventListener("change", function(){
-    const selected = this.value;
-    filteredCandidates = selected ? allCandidates.filter(c=>c.SCConstID==selected) : [];
-    currentPage=1;
+    const cons = this.value;
+    filteredCandidates = cons ? allCandidates.filter(c=>c.SCConstID==cons) : [];
+    currentPage = 1;
     renderCandidates();
 });
 
@@ -133,7 +157,6 @@ function renderPagination(){
     pagination.innerHTML="";
     const pageCount = Math.ceil(filteredCandidates.length/itemsPerPage);
     if(pageCount<=1) return;
-
     for(let i=1;i<=pageCount;i++){
         const btn = document.createElement("button");
         btn.textContent=i;
@@ -143,7 +166,7 @@ function renderPagination(){
     }
 }
 
-loadCandidatesByConstituency();
+loadCandidates();
 </script>
 </body>
 </html>
