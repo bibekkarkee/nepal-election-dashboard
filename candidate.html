@@ -10,37 +10,19 @@
     <h1>All Candidates</h1>
     <a href="index.html" class="btn-hero">Back to Dashboard</a>
   </header>
+
   <section class="candidate-profiles">
     <div class="candidate-grid" id="allCandidateGrid"></div>
   </section>
 
+  <script src="profile.js"></script>
   <script>
     const mainURL = "/api/proxy";
 
     async function loadAllCandidates() {
         const res = await fetch(mainURL);
         const data = await res.json();
-
-        const container = document.getElementById("allCandidateGrid");
-        data.forEach(d => {
-            const candidateImg = `https://result.election.gov.np/Images/Candidate/${d.CandidateID}.jpg`;
-            const partyLogo = d.SYMBOLCODE 
-                ? `https://result.election.gov.np/Images/Symbol/${d.SYMBOLCODE}.jpg` 
-                : "https://via.placeholder.com/40";
-
-            const card = document.createElement("div");
-            card.className = "candidate-card";
-
-            card.innerHTML = `
-                <img src="${candidateImg}" alt="${d.CandidateName}" class="candidate-img">
-                <h3>${d.CandidateName}</h3>
-                <p><img src="${partyLogo}" alt="${d.PoliticalPartyName}" class="party-logo"> ${d.PoliticalPartyName}</p>
-                <p><strong>Province:</strong> ${d.StateName}</p>
-                <p><strong>District:</strong> ${d.DistrictName}</p>
-                <p><strong>Constituency:</strong> ${d.SCConstID}</p>
-            `;
-            container.appendChild(card);
-        });
+        showAllCandidates(data); // profile.js function
     }
 
     loadAllCandidates();
