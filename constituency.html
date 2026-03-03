@@ -1,71 +1,249 @@
 <!DOCTYPE html>
-<html lang="ne">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>काठमाडौं निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</title>
-<link rel="stylesheet" href="css/style.css">
+<title>All Candidates - Nepal Election Dashboard</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- Swiper CSS for mobile carousel -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+
 <style>
+/* Candidate page styles */
 body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:0;}
-.header { background:#1e3c72; color:white; padding:20px; text-align:center; }
-.header h1 { margin:0; font-size:24px; }
-.candidate-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; padding:20px; }
-.candidate-card { background:white; padding:15px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); cursor:pointer; transition:.3s;}
+.page-header { display:flex; justify-content:space-between; align-items:center; background:#1e3c72; color:white; padding:20px 30px; flex-wrap:wrap;}
+.page-header h1 { margin:0; font-size:28px;}
+.btn-hero {display:inline-block; padding:10px 20px; font-size:14px; font-weight:600; color:white; background:#ff9f00; border-radius:6px; text-decoration:none; transition:.3s;}
+.btn-hero:hover { background:#ffb733;}
+.candidate-filters { display:flex; justify-content:center; gap:15px; margin:20px; flex-wrap:wrap; }
+.candidate-filters input, .candidate-filters select { padding:8px 12px; font-size:14px; border-radius:6px; border:1px solid #ccc; }
+.candidate-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:25px; padding:0 20px 40px 20px; }
+.candidate-card { background:white; border-radius:12px; padding:15px; text-align:left; box-shadow:0 6px 20px rgba(0,0,0,0.08); transition:.3s; cursor:pointer;}
 .candidate-card:hover { transform:translateY(-5px); }
-.candidate-card img { width:100%; height:180px; object-fit:cover; border-radius:8px; margin-bottom:10px; }
-.candidate-card h3 { margin:5px 0; font-size:18px; }
-.candidate-card p { margin:3px 0; font-size:14px; color:#555; }
+.candidate-card img.candidate-img { width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:10px; }
+.candidate-card img.party-logo { width:40px; height:40px; object-fit:contain; vertical-align:middle; margin-right:8px; }
+.candidate-card h3 { font-size:18px; margin:5px 0; }
+.candidate-card p { font-size:14px; color:#555; margin:3px 0; }
+.pagination { display:flex; justify-content:center; gap:10px; margin:20px 0; flex-wrap:wrap; }
+.pagination button { padding:6px 12px; border:none; border-radius:5px; background:#1e3c72; color:white; cursor:pointer; transition:.3s; }
+.pagination button:hover { background:#ff9f00; color:black; }
+.pagination button.active { background:#ff9f00; color:black; }
+/* Dark mode */
+body.dark .candidate-card { background:#1e1e1e; color:white; }
+body.dark .candidate-card p { color:#ccc; }
+body.dark .page-header { background:#0d1b36; }
+
+/* Swiper styles */
+.swiper-container { padding:20px 0; }
+.swiper-slide { width:auto; }
+
+@media (max-width:768px){
+  .candidate-filters { flex-direction: column; gap:10px; }
+  .candidate-card { padding:12px; }
+  .candidate-card img.candidate-img { height:180px; }
+  .candidate-card h3 { font-size:16px; }
+  .candidate-card p { font-size:13px; }
+  .page-header { flex-direction: column; align-items:flex-start; gap:10px; padding:15px 20px; }
+  .btn-hero { width:100%; text-align:center; }
+  .pagination { flex-wrap:wrap; }
+}
+
+@media (max-width:480px){
+  .candidate-card img.candidate-img { height:150px; }
+  .candidate-card h3 { font-size:14px; }
+  .candidate-card p { font-size:12px; }
+  .candidate-filters input, .candidate-filters select { font-size:13px; padding:6px 10px; }
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>काठमाडौं निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</h1>
-</div>
+<header class="page-header">
+    <h1>All Candidates</h1>
+    <a href="index.html" class="btn-hero">Back to Dashboard</a>
+</header>
 
-<div class="candidate-grid" id="candidateGrid">
-    <!-- Candidates will appear here -->
-</div>
+<section class="candidate-filters">
+    <input type="text" id="searchCandidate" placeholder="Search by name (Nepali or English)">
+    <select id="provinceFilter"><option value="">All Provinces</option></select>
+    <select id="districtFilter"><option value="">All Districts</option></select>
+</section>
 
+<section class="candidate-profiles">
+    <!-- Desktop Grid -->
+    <div class="candidate-grid" id="allCandidateGrid"></div>
+
+    <!-- Mobile Swiper -->
+    <div class="swiper-container" id="swiperContainer" style="display:none;">
+        <div class="swiper-wrapper" id="swiperWrapper"></div>
+        <div class="swiper-pagination"></div>
+    </div>
+</section>
+
+<div class="pagination" id="pagination"></div>
+
+<script src="profile.js"></script>
 <script>
-const API_URL = "https://api.allorigins.win/get?url=https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
+const mainURL = "/api/proxy";
+let allCandidates = [];
+let filteredCandidates = [];
+const itemsPerPage = 24;
+let currentPage = 1;
+let swiperInstance = null;
 
-async function loadKathmanduCandidates() {
+async function loadAllCandidates() {
     try {
-        const res = await fetch(API_URL);
-        const json = await res.json();
-        const data = JSON.parse(json.contents);
-
-        // Filter only Kathmandu candidates
-        const kathmanduCandidates = data.filter(c=>c.DistrictName==="काठमाडौं");
-
-        const container = document.getElementById("candidateGrid");
-        container.innerHTML="";
-
-        kathmanduCandidates.forEach(c=>{
-            const imgUrl = `https://result.election.gov.np/Images/Candidate/${c.CandidateID || 0}.jpg`;
-            const card = document.createElement("div");
-            card.className="candidate-card";
-            card.innerHTML=`
-                <img src="${imgUrl}" alt="${c.CandidateName||'-'}">
-                <h3>${c.CandidateName||'-'}</h3>
-                <p><strong>Province:</strong> ${c.StateName||'-'}</p>
-                <p><strong>District:</strong> ${c.DistrictName||'-'}</p>
-                <p><strong>Constituency:</strong> ${c.SCConstID||'-'}</p>
-                <p><strong>Party:</strong> ${c.PoliticalPartyName||'-'}</p>
-            `;
-            card.addEventListener("click", ()=>window.location.href=`candidate-detail.html?id=${c.CandidateID}`);
-            container.appendChild(card);
-        });
-
-    } catch(err){
-        console.error("Failed to load Kathmandu candidates:", err);
-        document.getElementById("candidateGrid").innerHTML="<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
+        const res = await fetch(mainURL);
+        const data = await res.json();
+        allCandidates = data;
+        filteredCandidates = allCandidates;
+        populateProvinceFilter(data);
+        renderPage(1);
+    } catch(e) {
+        console.error("Error fetching candidates", e);
+        document.getElementById("allCandidateGrid").innerHTML = "<p style='color:red;text-align:center;'>Failed to load candidates.</p>";
     }
 }
 
-loadKathmanduCandidates();
-</script>
+function populateProvinceFilter(data){
+    const provinces = [...new Set(data.map(d=>d.StateName || ""))].filter(Boolean).sort();
+    const provinceFilter = document.getElementById("provinceFilter");
+    provinces.forEach(p=>{
+        const option = document.createElement("option");
+        option.value = p;
+        option.textContent = p;
+        provinceFilter.appendChild(option);
+    });
+}
 
+function populateDistrictFilter(province){
+    const districts = [...new Set(allCandidates
+        .filter(d=>!province || d.StateName===province)
+        .map(d=>d.DistrictName || ""))].filter(Boolean).sort();
+    const districtFilter = document.getElementById("districtFilter");
+    districtFilter.innerHTML = `<option value="">All Districts</option>`;
+    districts.forEach(d=>{
+        const option = document.createElement("option");
+        option.value = d;
+        option.textContent = d;
+        districtFilter.appendChild(option);
+    });
+}
+
+document.getElementById("searchCandidate").addEventListener("input", filterHandler);
+document.getElementById("provinceFilter").addEventListener("change", e=>{
+    populateDistrictFilter(e.target.value);
+    filterHandler();
+});
+document.getElementById("districtFilter").addEventListener("change", filterHandler);
+
+function filterHandler(){
+    const search = document.getElementById("searchCandidate").value.toLowerCase();
+    const province = document.getElementById("provinceFilter").value;
+    const district = document.getElementById("districtFilter").value;
+
+    filteredCandidates = allCandidates.filter(c=>{
+        const nameMatch = !search || (c.CandidateName && normalizeNepali(c.CandidateName).toLowerCase().includes(normalizeNepali(search)));
+        const provinceMatch = !province || (c.StateName===province);
+        const districtMatch = !district || (c.DistrictName===district);
+        return nameMatch && provinceMatch && districtMatch;
+    });
+
+    renderPage(1);
+}
+
+function normalizeNepali(str){ if(!str) return ""; return str.normalize('NFC'); }
+
+function renderPage(page){
+    currentPage = page;
+    const container = document.getElementById("allCandidateGrid");
+    const swiperWrapper = document.getElementById("swiperWrapper");
+    container.innerHTML = "";
+    swiperWrapper.innerHTML = "";
+
+    if(filteredCandidates.length === 0){
+        container.innerHTML = "<p style='text-align:center;color:#555;'>No candidates found.</p>";
+        document.getElementById("pagination").innerHTML = "";
+        document.getElementById("swiperContainer").style.display="none";
+        return;
+    }
+
+    const start = (page-1)*itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = filteredCandidates.slice(start,end);
+
+    if(window.innerWidth <= 768){
+        document.getElementById("allCandidateGrid").style.display="none";
+        const swiperContainer = document.getElementById("swiperContainer");
+        swiperContainer.style.display="block";
+
+        pageItems.forEach(d=>{
+            const slide = document.createElement("div");
+            slide.className="swiper-slide";
+            const card = createCandidateCard(d);
+            card.addEventListener("click", ()=> window.location.href=`candidate-detail.html?id=${d.CandidateID}`);
+            slide.appendChild(card);
+            swiperWrapper.appendChild(slide);
+        });
+
+        if(swiperInstance) swiperInstance.update();
+        else swiperInstance = new Swiper(".swiper-container", {
+            slidesPerView: 1,
+            spaceBetween: 15,
+            pagination: { el: '.swiper-pagination', clickable: true },
+        });
+
+    } else {
+        document.getElementById("allCandidateGrid").style.display="grid";
+        document.getElementById("swiperContainer").style.display="none";
+
+        pageItems.forEach(d=>{
+            const card = createCandidateCard(d);
+            card.addEventListener("click", ()=> window.location.href=`candidate-detail.html?id=${d.CandidateID}`);
+            container.appendChild(card);
+        });
+    }
+
+    renderPagination(filteredCandidates.length, itemsPerPage, page);
+}
+
+function renderPagination(totalItems, itemsPerPage, currentPage){
+    const pageCount = Math.ceil(totalItems/itemsPerPage);
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML="";
+    if(pageCount<=1) return;
+    for(let i=1;i<=pageCount;i++){
+        const btn = document.createElement("button");
+        btn.textContent=i;
+        if(i===currentPage) btn.classList.add("active");
+        btn.addEventListener("click", ()=>renderPage(i));
+        pagination.appendChild(btn);
+    }
+}
+
+function createCandidateCard(d){
+    const candidateImg = `https://result.election.gov.np/Images/Candidate/${d.CandidateID||0}.jpg`;
+    const partyLogo = d.SYMBOLCODE ? `https://result.election.gov.np/Images/Symbol/${d.SYMBOLCODE}.jpg` : "https://via.placeholder.com/40";
+
+    const card = document.createElement("div");
+    card.className="candidate-card";
+    card.innerHTML=`
+        <img src="${candidateImg}" alt="${d.CandidateName||'-'}" class="candidate-img" loading="lazy">
+        <h3>${d.CandidateName||'-'}</h3>
+        <p><img src="${partyLogo}" alt="${d.PoliticalPartyName||'-'}" class="party-logo"> ${d.PoliticalPartyName||'-'}</p>
+        <p><strong>Province:</strong> ${d.StateName||'-'}</p>
+        <p><strong>District:</strong> ${d.DistrictName||'-'}</p>
+        <p><strong>Constituency:</strong> ${d.SCConstID||'-'}</p>
+        <p><strong>Gender:</strong> ${d.Gender||'-'}</p>
+        <p><strong>Age:</strong> ${d.AGE_YR||'-'}</p>
+        <p><strong>Qualification:</strong> ${d.QUALIFICATION||'-'}</p>
+    `;
+    return card;
+}
+
+loadAllCandidates();
+window.addEventListener("resize", ()=> renderPage(currentPage));
+</script>
 </body>
 </html>
