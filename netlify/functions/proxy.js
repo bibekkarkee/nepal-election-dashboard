@@ -1,5 +1,4 @@
-// netlify/functions/proxy.js
-
+// proxy.js
 exports.handler = async function() {
   try {
     const url = "https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
