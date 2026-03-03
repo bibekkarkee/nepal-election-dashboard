@@ -4,10 +4,55 @@ async function loadDashboard() {
     const res = await fetch(mainURL);
     const data = await res.json();
  // ==== Hero Banner====
-document.querySelector('.btn-hero').addEventListener('click', function(e){
-    e.preventDefault();
-    document.querySelector('#dashboard').scrollIntoView({ behavior: 'smooth' });
-});
+async function loadHero(data) {
+    // Animated counters already in dashboard.js
+    animateCounter("totalCandidates", data.length);
+    animateCounter("totalParties", new Set(data.map(d=>d.PoliticalPartyName)).size);
+
+    // Electoral Areas
+    let districtSeats = {};
+    data.forEach(d=>{
+        const district = d.DistrictName || "Unknown";
+        const seat = d.SCConstID;
+        if(seat!=null){
+            if(!districtSeats[district]) districtSeats[district]=new Set();
+            districtSeats[district].add(seat);
+        }
+    });
+    const totalElectoralAreas = Object.values(districtSeats)
+        .reduce((sum, seatSet)=>sum+seatSet.size,0);
+    animateCounter("totalConstituencies", totalElectoralAreas);
+
+    const totalDistricts = new Set(data.map(d=>d.DistrictName)).size;
+    animateCounter("totalDistricts", totalDistricts);
+
+    // ===== TOP PARTY LOGOS =====
+    const partySymbol = {};
+    data.forEach(d=>{
+        const party = d.PoliticalPartyName || "Unknown";
+        if(!partySymbol[party] && d.SYMBOLCODE){
+            partySymbol[party] = d.SYMBOLCODE;
+        }
+    });
+
+    // Sort top 5 parties
+    const sortedParties = Object.entries(partySymbol)
+        .slice(0,5);
+
+    const container = document.getElementById("heroTopParties");
+    container.innerHTML = "";
+
+    sortedParties.forEach(([partyName, code])=>{
+        const img = document.createElement("img");
+        img.src = `https://result.election.gov.np/Images/Symbols/${code}.jpg`;
+        img.alt = partyName;
+        img.title = partyName;
+        container.appendChild(img);
+    });
+}
+
+// Call after fetching data
+loadHero(data);
     
     // ==== TOTAL CANDIDATES & PARTIES ====
     const totalCandidates = data.length;
