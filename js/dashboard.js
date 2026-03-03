@@ -53,6 +53,43 @@ async function loadHero(data) {
 
 // Call after fetching data
 loadHero(data);
+
+    
+
+// ===== SHOW 8 RANDOM CANDIDATES =====
+function showRandomCandidateProfiles(data, count = 8) {
+    const container = document.getElementById("candidateGrid");
+    container.innerHTML = "";
+
+    // Shuffle array
+    const shuffled = [...data].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, count);
+
+    selected.forEach(d => {
+        const candidateImg = `https://result.election.gov.np/Images/Candidate/${d.CandidateID}.jpg`;
+        const partyLogo = d.SYMBOLCODE 
+            ? `https://result.election.gov.np/Images/Symbols/${d.SYMBOLCODE}.jpg` 
+            : "https://via.placeholder.com/40";
+
+        const card = document.createElement("div");
+        card.className = "candidate-card";
+
+        card.innerHTML = `
+            <img src="${candidateImg}" alt="${d.CandidateName}" class="candidate-img">
+            <h3>${d.CandidateName}</h3>
+            <p><img src="${partyLogo}" alt="${d.PoliticalPartyName}" class="party-logo"> ${d.PoliticalPartyName}</p>
+            <p><strong>Province:</strong> ${d.StateName}</p>
+            <p><strong>District:</strong> ${d.DistrictName}</p>
+            <p><strong>Constituency:</strong> ${d.SCConstID}</p>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// Call this instead of showing all candidates
+showRandomCandidateProfiles(data, 8);
+    
     
     // ==== TOTAL CANDIDATES & PARTIES ====
     const totalCandidates = data.length;
