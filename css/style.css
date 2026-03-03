@@ -186,3 +186,70 @@ body.dark .party-card {
 body.dark .party-info p {
     color: #ccc;
 }
+/* ===== HERO BANNER ===== */
+.hero-banner {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-banner h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.3);
+}
+
+.hero-banner p {
+    font-size: 20px;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+}
+
+.btn-hero {
+    display: inline-block;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background: #ff9f00;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-hero:hover {
+    background: #ffb733;
+}
+
+/* Hero decorative circles (optional) */
+.hero-banner::before, .hero-banner::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+}
+
+.hero-banner::before {
+    width: 200px;
+    height: 200px;
+    top: -50px;
+    left: -50px;
+}
+
+.hero-banner::after {
+    width: 300px;
+    height: 300px;
+    bottom: -100px;
+    right: -100px;
+}
+
+/* DARK MODE */
+body.dark .hero-banner {
+    background: linear-gradient(135deg, #0d1b36, #1a2a52);
+}
