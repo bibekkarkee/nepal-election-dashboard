@@ -1,128 +1,268 @@
+const mainURL = "/api/proxy";
+
 async function loadDashboard() {
-  try {
-    const res = await fetch("/.netlify/functions/proxy");
-    const json = await res.json();
-    const candidates = JSON.parse(json.contents);
+    const res = await fetch(mainURL);
+    const data = await res.json();
+ // ==== Hero Banner====
+async function loadHero(data) {
+    // Animated counters already in dashboard.js
+    animateCounter("totalCandidates", data.length);
+    animateCounter("totalParties", new Set(data.map(d=>d.PoliticalPartyName)).size);
 
-    // ===== COUNTERS =====
-    const totalCandidates = candidates.length;
-    const totalDistricts = [...new Set(candidates.map(c => c.DistrictName))].length;
-    const totalParties = [...new Set(candidates.map(c => c.PoliticalPartyName))].length;
-    const totalConstituencies = 165; // Nepal electoral areas
+    // Electoral Areas
+    let districtSeats = {};
+    data.forEach(d=>{
+        const district = d.DistrictName || "Unknown";
+        const seat = d.SCConstID;
+        if(seat!=null){
+            if(!districtSeats[district]) districtSeats[district]=new Set();
+            districtSeats[district].add(seat);
+        }
+    });
+    const totalElectoralAreas = Object.values(districtSeats)
+        .reduce((sum, seatSet)=>sum+seatSet.size,0);
+    animateCounter("totalConstituencies", totalElectoralAreas);
 
-    // Animate counters
-    animateCounter("totalCandidates", totalCandidates);
+    const totalDistricts = new Set(data.map(d=>d.DistrictName)).size;
     animateCounter("totalDistricts", totalDistricts);
-    animateCounter("totalParties", totalParties);
-    animateCounter("totalConstituencies", totalConstituencies);
 
-    // ===== RANDOM CANDIDATES =====
-    const candidateGrid = document.getElementById("candidateGrid");
-    candidateGrid.innerHTML = "";
-    const shuffled = candidates.sort(() => 0.5 - Math.random()).slice(0, 8);
-    shuffled.forEach(c => {
-      const card = document.createElement("div");
-      card.className = "candidate-card";
-      card.innerHTML = `
-        <img src="https://result.election.gov.np/Images/Candidate/${c.CandidateID}.jpg" alt="${c.CandidateName}">
-        <h3>${c.CandidateName}</h3>
-        <p><strong>Province:</strong> ${c.StateName}</p>
-        <p><strong>District:</strong> ${c.DistrictName}</p>
-        <p><strong>Constituency:</strong> ${c.SCConstID}</p>
-        <p><strong>Party:</strong> ${c.PoliticalPartyName}</p>
-      `;
-      card.addEventListener("click", () => window.location.href = `candidate-detail.html?id=${c.CandidateID}`);
-      candidateGrid.appendChild(card);
+    // ===== TOP PARTY LOGOS =====
+    const partySymbol = {};
+    data.forEach(d=>{
+        const party = d.PoliticalPartyName || "Unknown";
+        if(!partySymbol[party] && d.SYMBOLCODE){
+            partySymbol[party] = d.SYMBOLCODE;
+        }
     });
 
-    // ===== CHARTS =====
-    renderGenderChart(candidates);
-    renderAgeChart(candidates);
-    renderStateChart(candidates);
+    // Sort top 5 parties
+    const sortedParties = Object.entries(partySymbol)
+        .slice(0,5);
 
-  } catch (err) {
-    console.error(err);
-    document.getElementById("candidateGrid").innerHTML = "<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
-  }
+    const container = document.getElementById("heroTopParties");
+    container.innerHTML = "";
+
+    sortedParties.forEach(([partyName, code])=>{
+        const img = document.createElement("img");
+        img.src = `https://result.election.gov.np/Images/Symbols/${code}.jpg`;
+        img.alt = partyName;
+        img.title = partyName;
+        container.appendChild(img);
+    });
 }
 
-// ===== COUNTER ANIMATION =====
-function animateCounter(id, end) {
-  const el = document.getElementById(id);
-  let start = 0;
-  const step = Math.ceil(end / 100);
-  const interval = setInterval(() => {
-    start += step;
-    if (start >= end) {
-      start = end;
-      clearInterval(interval);
-    }
-    el.textContent = start;
-  }, 15);
+// Call after fetching data
+loadHero(data);
+
+    
+
+// ===== SHOW 8 RANDOM CANDIDATES =====
+function showRandomCandidateProfiles(data, count = 8) {
+    const container = document.getElementById("candidateGrid");
+    container.innerHTML = "";
+
+    // Shuffle array
+    const shuffled = [...data].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, count);
+
+    selected.forEach(d => {
+        const candidateImg = `https://result.election.gov.np/Images/Candidate/${d.CandidateID}.jpg`;
+        const partyLogo = d.SYMBOLCODE 
+            ? `https://result.election.gov.np/Images/Symbols/${d.SYMBOLCODE}.jpg` 
+            : "https://via.placeholder.com/40";
+
+        const card = document.createElement("div");
+        card.className = "candidate-card";
+
+        card.innerHTML = `
+            <img src="${candidateImg}" alt="${d.CandidateName}" class="candidate-img">
+            <h3>${d.CandidateName}</h3>
+            <p><img src="${partyLogo}" alt="${d.PoliticalPartyName}" class="party-logo"> ${d.PoliticalPartyName}</p>
+            <p><strong>Province:</strong> ${d.StateName}</p>
+            <p><strong>District:</strong> ${d.DistrictName}</p>
+            <p><strong>Constituency:</strong> ${d.SCConstID}</p>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// Call this instead of showing all candidates
+showRandomCandidateProfiles(data, 4);
+    
+    
+    // ==== TOTAL CANDIDATES & PARTIES ====
+    const totalCandidates = data.length;
+    const totalParties = new Set(data.map(d => d.PoliticalPartyName)).size;
+
+    // ==== TOTAL ELECTORAL AREAS (165) ====
+    let districtSeats = {};
+    data.forEach(d => {
+        const district = d.DistrictName || "Unknown";
+        const seat = d.SCConstID;
+        if (seat !== null && seat !== undefined) {
+            if (!districtSeats[district]) districtSeats[district] = new Set();
+            districtSeats[district].add(seat);
+        }
+    });
+    const totalElectoralAreas = Object.values(districtSeats)
+        .reduce((sum, seatSet) => sum + seatSet.size, 0);
+
+    // ==== TOTAL DISTRICTS ====
+    const totalDistricts = new Set(data.map(d => d.DistrictName)).size;
+
+    // ==== ANIMATED COUNTERS ====
+    animateCounter("totalCandidates", totalCandidates);
+    animateCounter("totalParties", totalParties);
+    animateCounter("totalConstituencies", totalElectoralAreas);
+    animateCounter("totalDistricts", totalDistricts);
+
+    // ==== COUNT HELPERS ====
+    const countBy = (key) => {
+        const obj = {};
+        data.forEach(d => {
+            const val = d[key] || "Unknown";
+            obj[val] = (obj[val] || 0) + 1;
+        });
+        return obj;
+    };
+
+    // ==== GENDER PIE ====
+    createPieChart("genderChart", countBy("Gender"));
+
+    // ==== AGE BAR ====
+    const ageGroups = { "18-30": 0, "31-45": 0, "46-60": 0, "60+": 0 };
+    data.forEach(d => {
+        const age = d.AGE_YR || 0;
+        if (age <= 30) ageGroups["18-30"]++;
+        else if (age <= 45) ageGroups["31-45"]++;
+        else if (age <= 60) ageGroups["46-60"]++;
+        else ageGroups["60+"]++;
+    });
+    createBarChart("ageChart", ageGroups);
+
+    // ==== STATE BAR ====
+    createBarChart("stateChart", countBy("StateName"));
+
+    // ==== TOP PARTY PIE ====
+    const partyCount = countBy("PoliticalPartyName");
+    const sortedParties = Object.fromEntries(
+        Object.entries(partyCount).sort((a, b) => b[1] - a[1]).slice(0, 5)
+    );
+    createPieChart("partyChart", sortedParties);
+
+    // ==== TOP PARTIES CARDS ====
+    showTopPartiesCards(data, 5);
+}
+
+// ===== TOP PARTIES CARDS FUNCTION =====
+function showTopPartiesCards(data, topN = 5) {
+    const countByParty = {};
+    const partySymbol = {};
+
+    data.forEach(d => {
+        const party = d.PoliticalPartyName || "Unknown";
+        countByParty[party] = (countByParty[party] || 0) + 1;
+
+        if (!partySymbol[party] && d.SYMBOLCODE) {
+            partySymbol[party] = d.SYMBOLCODE;
+        }
+    });
+
+    const sortedParties = Object.entries(countByParty)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0, topN);
+
+    const container = document.getElementById("topPartiesContainer");
+    container.innerHTML = "";
+
+    sortedParties.forEach(([partyName, candidateCount])=>{
+        const symbolCode = partySymbol[partyName];
+        const logoURL = symbolCode 
+            ? `https://result.election.gov.np/Images/Symbols/${symbolCode}.jpg` 
+            : "https://via.placeholder.com/50";
+
+        const card = document.createElement("div");
+        card.className = "party-card";
+        card.innerHTML = `
+            <img src="${logoURL}" alt="${partyName}" class="party-logo">
+            <div class="party-info">
+                <h4>${partyName}</h4>
+                <p>Candidates: ${candidateCount}</p>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// ===== ANIMATED COUNTER FUNCTION =====
+function animateCounter(id, target) {
+    const el = document.getElementById(id);
+    let count = 0;
+    const step = target / 50;
+    const interval = setInterval(() => {
+        count += step;
+        if (count >= target) {
+            el.innerText = target;
+            clearInterval(interval);
+        } else {
+            el.innerText = Math.floor(count);
+        }
+    }, 20);
 }
 
 // ===== CHART FUNCTIONS =====
-function renderGenderChart(candidates) {
-  const male = candidates.filter(c => c.Gender === "पुरुष").length;
-  const female = candidates.filter(c => c.Gender === "महिला").length;
-  const other = candidates.length - male - female;
-
-  new Chart(document.getElementById("genderChart"), {
-    type: 'pie',
-    data: {
-      labels: ["पुरुष", "महिला", "अन्य"],
-      datasets: [{
-        data: [male, female, other],
-        backgroundColor: ['#1e3c72','#ff9f00','#4caf50'],
-      }]
-    },
-    options: { responsive:true }
-  });
+function createPieChart(canvasId, dataObj) {
+    new Chart(document.getElementById(canvasId), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(dataObj),
+            datasets: [{
+                data: Object.values(dataObj),
+                backgroundColor: generateColors(Object.keys(dataObj).length)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
 }
 
-function renderAgeChart(candidates) {
-  const ageGroups = { "<30":0, "30-40":0, "41-50":0, "51-60":0, "61+":0 };
-  candidates.forEach(c=>{
-    const age = parseInt(c.AGE_YR);
-    if(age<30) ageGroups["<30"]++;
-    else if(age<=40) ageGroups["30-40"]++;
-    else if(age<=50) ageGroups["41-50"]++;
-    else if(age<=60) ageGroups["51-60"]++;
-    else ageGroups["61+"]++;
-  });
-
-  new Chart(document.getElementById("ageChart"), {
-    type:'bar',
-    data:{
-      labels:Object.keys(ageGroups),
-      datasets:[{
-        label:'Candidates',
-        data:Object.values(ageGroups),
-        backgroundColor:'#1e3c72'
-      }]
-    },
-    options:{responsive:true, scales:{y:{beginAtZero:true}}}
-  });
+function createBarChart(canvasId, dataObj) {
+    new Chart(document.getElementById(canvasId), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(dataObj),
+            datasets: [{
+                label: 'Count',
+                data: Object.values(dataObj),
+                backgroundColor: generateColors(Object.keys(dataObj).length)
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
 }
 
-function renderStateChart(candidates) {
-  const states = {};
-  candidates.forEach(c=>{
-    if(c.StateName) states[c.StateName]=(states[c.StateName]||0)+1;
-  });
-  new Chart(document.getElementById("stateChart"), {
-    type:'bar',
-    data:{
-      labels:Object.keys(states),
-      datasets:[{
-        label:'Candidates',
-        data:Object.values(states),
-        backgroundColor:'#ff9f00'
-      }]
-    },
-    options:{responsive:true, scales:{y:{beginAtZero:true}}}
-  });
+// ===== RANDOM COLOR HELPER =====
+function generateColors(count) {
+    const colors = [];
+    for (let i = 0; i < count; i++) {
+        const hue = Math.floor(Math.random() * 360);
+        colors.push(`hsl(${hue}, 70%, 50%)`);
+    }
+    return colors;
 }
 
-// Load dashboard
+// ===== DARK MODE TOGGLE =====
+document.getElementById("darkToggle").addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+});
+
 loadDashboard();
+
+
