@@ -47,7 +47,7 @@ body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:
 
 <header class="page-header">
     <h1>निर्वाचन क्षेत्र अनुसार उम्मेदवारहरू</h1>
-    <a href="index.html" class="btn-hero">Back to Dashboard | Home</a>
+    <a href="index.html" class="btn-hero">Back to Dashboard</a>
 </header>
 
 <section class="filters">
@@ -67,16 +67,20 @@ body { font-family:'Segoe UI',sans-serif; background:#f5f5f5; margin:0; padding:
 </section>
 
 <script>
-const API_URL = "https://api.allorigins.win/raw?url=https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
+// Use AllOrigins proxy to fetch Nepali Election JSON
+const API_URL = "https://api.allorigins.win/get?url=https://result.election.gov.np/JSONFiles/ElectionResultCentral2082.txt";
+
 let allCandidates = [];
 let filteredCandidates = [];
 let currentPage = 1;
 const itemsPerPage = 24;
 
+// Load candidates
 async function loadCandidates() {
     try {
         const res = await fetch(API_URL);
-        allCandidates = await res.json();
+        const json = await res.json();
+        allCandidates = JSON.parse(json.contents);
 
         // Populate Province dropdown
         const provinces = [...new Set(allCandidates.map(c=>c.StateName))].filter(Boolean);
@@ -88,14 +92,16 @@ async function loadCandidates() {
             provinceSelect.appendChild(opt);
         });
 
-        populateConstituencies(); // populate all initially
-        renderCandidates(); // default empty
+        populateConstituencies(); // all constituencies
+        filteredCandidates = allCandidates; // show all by default
+        renderCandidates();
     } catch(err){
         console.error("Failed to load candidates:", err);
         document.getElementById("candidateGrid").innerHTML="<p style='text-align:center;color:red;'>Failed to load candidates.</p>";
     }
 }
 
+// Populate constituencies based on province
 function populateConstituencies(province=""){
     const constituencySelect = document.getElementById("constituencyFilter");
     constituencySelect.innerHTML='<option value="">Select Electoral Area (निर्वाचन क्षेत्र)</option>';
@@ -115,7 +121,7 @@ function populateConstituencies(province=""){
 document.getElementById("provinceFilter").addEventListener("change", function(){
     const prov = this.value;
     populateConstituencies(prov);
-    filteredCandidates = [];
+    filteredCandidates = prov ? allCandidates.filter(c=>c.StateName===prov) : allCandidates;
     currentPage = 1;
     renderCandidates();
 });
@@ -123,11 +129,12 @@ document.getElementById("provinceFilter").addEventListener("change", function(){
 // Constituency filter change
 document.getElementById("constituencyFilter").addEventListener("change", function(){
     const cons = this.value;
-    filteredCandidates = cons ? allCandidates.filter(c=>c.SCConstID==cons) : [];
+    filteredCandidates = cons ? allCandidates.filter(c=>c.SCConstID==cons) : allCandidates;
     currentPage = 1;
     renderCandidates();
 });
 
+// Render candidates on page
 function renderCandidates(){
     const container = document.getElementById("candidateGrid");
     container.innerHTML="";
@@ -152,6 +159,7 @@ function renderCandidates(){
     renderPagination();
 }
 
+// Render pagination buttons
 function renderPagination(){
     const pagination = document.getElementById("pagination");
     pagination.innerHTML="";
@@ -168,5 +176,6 @@ function renderPagination(){
 
 loadCandidates();
 </script>
+
 </body>
 </html>
